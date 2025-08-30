@@ -56,6 +56,7 @@ class HomePageState extends State<HomePage> {
     if (session != null) {
       try {
         await SupabaseService.client.auth.signOut();
+        print("Signed out successfully.");
         Navigator.pushReplacement(
           context, 
           MaterialPageRoute(
