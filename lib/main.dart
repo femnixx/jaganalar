@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gemini/flutter_gemini.dart';
+import 'package:jaganalar/SignIn.dart';
 import 'package:jaganalar/SignUp.dart';
 import 'package:jaganalar/home_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -24,13 +25,15 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final session = Supabase.instance.client.auth.currentSession;
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: Signup(),
+      home: session != null ? HomePage() : Signin(),
     );
   }
 }
