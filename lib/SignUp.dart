@@ -30,8 +30,11 @@ class _SignupState extends State<Signup> {
           password: password,
           data: {'username': username},
         );
-        final Session? session = res.session;
-        final User? user = res.user;
+        await SupabaseService.client.from('users').insert({
+          'username': username,
+          'email': email,
+          'timestamp': DateTime.now().toIso8601String(),
+        });
         dispose();
         Navigator.pushReplacement(
           context,

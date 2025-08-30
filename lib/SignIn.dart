@@ -10,11 +10,38 @@ class Signin extends StatefulWidget {
 }
 
 class _SigninState extends State<Signin> {
-  TextEditingController emailController = TextEditingController();
-  TextEditingController passwordController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+
+  void signin() async {
+    String email = emailController.text;
+    String password = passwordController.text;
+
+    final AuthResponse res = await SupabaseService.client.auth
+        .signInWithPassword(email: email, password: password);
+    final Session? session = res.session;
+    final User? user = res.user;
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Container(child: null);
+    return Scaffold(
+      appBar: AppBar(title: Text('Sign In')),
+      body: Container(
+        child: Column(
+          children: [
+            TextField(
+              controller: emailController,
+              decoration: InputDecoration(label: Text('Email')),
+            ),
+            SizedBox(height: 10),
+            TextField(
+              controller: passwordController,
+              decoration: InputDecoration(label: Text('Password')),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
