@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jaganalar/SignUp.dart';
 import 'package:jaganalar/home_page.dart';
 import 'Supabase.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -52,6 +53,22 @@ class _SigninState extends State<Signin> {
             ),
             SizedBox(height: 10),
             ElevatedButton(onPressed: signin, child: Text('Sign In')),
+            SizedBox(height: 10,),
+            TextButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => Signup()
+                  ) 
+                );
+              }, 
+              child: Text(
+                'No Account? Sign Up',
+                style: TextStyle(
+                  decoration: TextDecoration.underline,
+                ),
+              ))
           ],
         ),
       ),
