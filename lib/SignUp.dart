@@ -23,7 +23,7 @@ class _SignupState extends State<Signup> {
     String email = emailController.text;
 
     // supabase function
-    if (!username.isEmpty && !password.isEmpty && !email.isEmpty) {
+    if (username.isNotEmpty && password.isNotEmpty && email.isNotEmpty) {
       try {
         final AuthResponse res = await supabase.auth.signUp(
           email: email,
