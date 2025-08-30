@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gemini/flutter_gemini.dart';
 import 'package:dash_chat_2/dash_chat_2.dart';
+import 'consts.dart';
 
 void main() {
-  Gemini.init(apiKey: 'YOUR_GEMINI_API_KEY'); // replace with your key
+  Gemini.init(apiKey: GEMINI_API_KEY); // replace with your key
   runApp(const MyApp());
 }
 
