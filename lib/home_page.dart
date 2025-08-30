@@ -77,11 +77,24 @@ class HomePageState extends State<HomePage> {
         title: const Text('Gemini Try'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
-      body: DashChat(
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8),
+            child: ElevatedButton(
+              onPressed: logout, 
+              child: Text('Logout')
+            ),
+          ),
+          Expanded(
+            child: DashChat(
         currentUser: currentUser,
         messages: messages,
         onSend: _sendMessage,
       ),
+          )
+        ],
+      )
     );
   }
 
