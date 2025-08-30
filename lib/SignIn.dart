@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jaganalar/home_page.dart';
 import 'Supabase.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -21,6 +22,16 @@ class _SigninState extends State<Signin> {
         .signInWithPassword(email: email, password: password);
     final Session? session = res.session;
     final User? user = res.user;
+    dispose();
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => HomePage()),
+    );
+  }
+
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
   }
 
   @override
@@ -39,6 +50,8 @@ class _SigninState extends State<Signin> {
               controller: passwordController,
               decoration: InputDecoration(label: Text('Password')),
             ),
+            SizedBox(height: 10),
+            ElevatedButton(onPressed: signin, child: Text('SIgn In')),
           ],
         ),
       ),
