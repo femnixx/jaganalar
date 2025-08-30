@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gemini/flutter_gemini.dart';
 import 'package:jaganalar/SignUp.dart';
+import 'package:jaganalar/home_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'consts.dart';
 

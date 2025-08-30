@@ -32,6 +32,7 @@ class _SignupState extends State<Signup> {
         );
         final Session? session = res.session;
         final User? user = res.user;
+        dispose();
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => Signin()),
@@ -45,6 +46,9 @@ class _SignupState extends State<Signup> {
 
   void dispose() {
     super.dispose();
+    usernameController.dispose();
+    passwordController.dispose();
+    emailController.dispose();
   }
 
   @override
