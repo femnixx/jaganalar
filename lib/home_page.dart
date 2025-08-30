@@ -44,7 +44,23 @@ class HomePageState extends State<HomePage> {
 
     try {
       String question = chatMessage.text;
-      gemini.streamGenerateContent(question).listen((event) {});
+      gemini.streamGenerateContent(question).listen((event) {
+        ChatMessage? lastMessage = messages.firstOrNull;
+        if (lastMessage != null && lastMessage.user == geminiUser) {
+        } else {
+          String response =
+              event.content?.parts?.fold(
+                '',
+                (previous, current) => '$previous$current',
+              ) ??
+              "";
+          ChatMessage message = ChatMessage(
+            user: geminiUser,
+            createdAt: DateTime.now(),
+            text: response,
+          );
+        }
+      });
     } catch (e) {
       print(e);
     }
