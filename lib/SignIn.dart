@@ -51,7 +51,7 @@ class _SigninState extends State<Signin> {
               decoration: InputDecoration(label: Text('Password')),
             ),
             SizedBox(height: 10),
-            ElevatedButton(onPressed: signin, child: Text('SIgn In')),
+            ElevatedButton(onPressed: signin, child: Text('Sign In')),
           ],
         ),
       ),
