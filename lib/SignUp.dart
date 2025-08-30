@@ -30,6 +30,7 @@ class _SignupState extends State<Signup> {
           password: password,
           data: {'username': username},
         );
+
         await SupabaseService.client.from('users').insert({
           'username': username,
           'email': email,
