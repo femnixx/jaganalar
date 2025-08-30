@@ -48,6 +48,7 @@ class _SignupState extends State<Signup> {
     }
   }
 
+  @override
   void dispose() {
     super.dispose();
     usernameController.dispose();
@@ -85,6 +86,19 @@ class _SignupState extends State<Signup> {
                   signUp();
                 },
                 child: Text('Sign Up'),
+              ),
+              SizedBox(height: 10),
+              TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => Signin()),
+                  );
+                },
+                child: Text(
+                  'Already have an account? Sign In',
+                  style: TextStyle(decoration: TextDecoration.underline),
+                ),
               ),
             ],
           ),
