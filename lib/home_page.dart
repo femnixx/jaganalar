@@ -81,7 +81,7 @@ class HomePageState extends State<HomePage> {
         });
       });
     } catch (e) {
-      print('Gemini error: $e');
+      print('Gemini errors: $e');
     }
   }
 }
