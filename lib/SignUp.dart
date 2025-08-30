@@ -36,7 +36,6 @@ class _SignupState extends State<Signup> {
           'email': email,
           'timestamp': DateTime.now().toIso8601String(),
         });
-        dispose();
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => Signin()),

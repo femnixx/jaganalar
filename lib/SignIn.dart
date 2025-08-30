@@ -23,13 +23,13 @@ class _SigninState extends State<Signin> {
         .signInWithPassword(email: email, password: password);
     final Session? session = res.session;
     final User? user = res.user;
-    dispose();
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => HomePage()),
     );
   }
 
+  @override
   void dispose() {
     emailController.dispose();
     passwordController.dispose();
