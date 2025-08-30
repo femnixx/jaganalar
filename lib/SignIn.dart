@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jaganalar/Dashboard.dart';
 import 'package:jaganalar/SignUp.dart';
 import 'package:jaganalar/home_page.dart';
 import 'Supabase.dart';
@@ -25,7 +26,7 @@ class _SigninState extends State<Signin> {
     final User? user = res.user;
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => HomePage()),
+      MaterialPageRoute(builder: (context) => Dashboard()),
     );
   }
 
@@ -33,6 +34,7 @@ class _SigninState extends State<Signin> {
   void dispose() {
     emailController.dispose();
     passwordController.dispose();
+    super.dispose();
   }
 
   @override
