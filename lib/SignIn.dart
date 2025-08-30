@@ -50,6 +50,7 @@ class _SigninState extends State<Signin> {
             TextField(
               controller: passwordController,
               decoration: InputDecoration(label: Text('Password')),
+              obscureText: true,
             ),
             SizedBox(height: 10),
             ElevatedButton(onPressed: signin, child: Text('Sign In')),
