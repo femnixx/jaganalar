@@ -1,6 +1,8 @@
 import 'dart:js_interop';
 
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'Supabase.dart';
 
 class Signup extends StatefulWidget {
   Signup({Key? key}) : super(key: key);
@@ -15,10 +17,25 @@ class _SignupState extends State<Signup> {
   final TextEditingController emailController = TextEditingController();
 
   // sign up
-  void signUp() {
+  void signUp() async {
     String username = usernameController.text;
     String password = passwordController.text;
     String email = emailController.text;
+
+    // supabase function
+    if (!username.isEmpty && !password.isEmpty && !email.isEmpty) {
+      try {
+        final AuthResponse res = await supabase.auth.signUp(
+          email: email,
+          password: password,
+          data: {'username': username},
+        );
+        final Session? session = res.session;
+        final User? user = res.user;
+      } catch (error) {
+        print(error);
+      }
+    }
   }
 
   void dispose() {
