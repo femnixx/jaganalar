@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gemini/flutter_gemini.dart';
 import 'package:dash_chat_2/dash_chat_2.dart';
+import 'package:jaganalar/SignIn.dart';
+import 'package:jaganalar/Supabase.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'consts.dart';
 
 void main() {
@@ -43,6 +46,27 @@ class HomePageState extends State<HomePage> {
     profileImage:
         'https://i.pinimg.com/1200x/d1/94/ae/d194aeea8bb120c531a9d4d9ef6622d4.jpg',
   );
+
+  void dispose() {
+    super.dispose();
+  }
+
+  void logout() async {
+    final session = Supabase.instance.client.auth.currentSession;
+    if (session != null) {
+      try {
+        await SupabaseService.client.auth.signOut();
+        Navigator.pushReplacement(
+          context, 
+          MaterialPageRoute(
+            builder: (context) => Signin())
+        );
+      } catch (error) {
+        print(error);
+      }
+    }
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
