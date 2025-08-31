@@ -45,17 +45,38 @@ class Dashboard extends StatelessWidget {
 
           final username = snapshot.data!;
           return SafeArea(
-            child: Row(
-              children: [
-                const CircleAvatar(),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Selamat pagi, $username'),
-                    const Text('Hi there'),
-                  ],
-                ),
-              ],
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              child: Column(
+                children: [
+                  Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const CircleAvatar(),
+                          SizedBox(width: 8),
+                          Column(
+                            children: [
+                              Text('Selamat pagi, $username'),
+                              const Text('Level 5 * 1250 xp'),
+                            ],
+                          ),
+                        ],
+                      ),
+                      Center(child: Icon(Icons.notifications)),
+                    ],
+                  ),
+                  Divider(
+                    color: Colors.black,
+                    thickness: 0.5,
+                  ),
+                  SizedBox(height: 20),
+
+                ],
+              ),
             ),
           );
         },
