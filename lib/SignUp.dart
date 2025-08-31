@@ -130,7 +130,7 @@ class _SignupState extends State<Signup> {
               ),
               SizedBox(height: 4),
               Text(
-                'Datarkan akun anda untuk mengakses aplikasi',
+                'Daftarkan akun anda untuk mengakses aplikasi',
                 style: TextStyle(
                   fontSize: 14
                 ),
@@ -327,11 +327,15 @@ class _SignupState extends State<Signup> {
               ],
             ),
             SizedBox(height: 15),
-            Center(
-              child: Text(
-                'Dengan mendaftar, anda menyetujui Ketentuan Layanan dan Kebijakan Privasi Meksiko',
-                textAlign: TextAlign.center,
-                ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Dengan mendaftar, anda menyetujui Ketentuan \n Layanan dan Kebijakan Privasi Meksiko',
+                  textAlign: TextAlign.center,
+                  ),
+              ],
             )
             ],
           ),
