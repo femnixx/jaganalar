@@ -2,6 +2,7 @@
 import 'package:dash_chat_2/dash_chat_2.dart';
 import 'package:flutter/material.dart';
 import 'package:jaganalar/Dashboard.dart';
+import 'package:jaganalar/ForgotPassword.dart';
 import 'package:jaganalar/SignIn.dart';
 import 'package:jaganalar/SignUp.dart';
 import 'package:jaganalar/home_page.dart';
@@ -65,6 +66,10 @@ class _SigninState extends State<Signin> {
         print(error);
       }
     }
+  }
+
+  void forgotPassword() async {
+
   }
 
   @override
@@ -222,7 +227,12 @@ class _SigninState extends State<Signin> {
                   ),
                   TextButton(
                     onPressed: () {
-                      
+                      Navigator.push(
+                        context, 
+                        MaterialPageRoute(
+                          builder: (context) => ForgotPassword()
+                        )
+                      );
                     },
                     child:
                     Text('Lupa Password?',
@@ -237,7 +247,11 @@ class _SigninState extends State<Signin> {
               SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () {
-
+                  allValid ? signIn() : ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('All fields must be completed')
+                    )
+                  );
                 },
                 style: ButtonStyle(
                   minimumSize: WidgetStateProperty.all(Size(double.infinity, 50)),

@@ -24,6 +24,18 @@ class _ActivityState extends State<Activity> {
                   Text('Activity'),
                   Icon(Icons.search)
                 ],
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    }, 
+                    child: Text('Click me to go back')
+                  )
+                ],
               )
             ],
           ),
