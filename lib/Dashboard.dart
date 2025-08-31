@@ -124,60 +124,108 @@ class Dashboard extends StatelessWidget {
                           border: Border.all(
                             color: Colors.black,
                             width: 2,
-                          ) 
+                          ),
                         ),
                         child: Padding(
                           padding: EdgeInsetsGeometry.all(30),
-                          child: Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                // Ranking
-                                Row(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              // Ranking
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Text('Ranking kamu'),
+                                  SizedBox(width: 15),
+                                  TextButton(
+                                    onPressed: () {
+                                      // Implement view logic if possible
+                                    }, 
+                                    child: Text('View All')
+                                  )
+                                ],
+                              ),
+                              // The actual ranking like number and how many points you have
+                              Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    Text('Ranking kamu'),
-                                    SizedBox(width: 15),
-                                    TextButton(
-                                      onPressed: () {
-                                        // Implement view logic if possible
-                                      }, 
-                                      child: Text('View All')
-                                    )
-                                  ],
-                                ),
-                                // The actual ranking like number and how many points you have
-                                Row(
+                                children: [
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      border: Border.all(color: Colors.black),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(10.0),
+                                      child: Text('#12'),
+                                    ),
+                                  ),
+                                  // The ranking like ranking 12, how many points this week
+                                  SizedBox(width: 15),
+                                  Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Container(
-                                      decoration: BoxDecoration(
-                                        border: Border.all(color: Colors.black),
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(10.0),
-                                        child: Text('#12'),
-                                      ),
-                                    ),
-                                    // The ranking like ranking 12, how many points this week
-                                    SizedBox(width: 15),
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Text('Ranking 12'),
-                                        Text('1,280 points this week')
-                                      ],
-                                    )
-                                  ],
-                                )
-                              ],
-                            ),
+                                    children: [
+                                      Text('Ranking 12'),
+                                      Text('1,280 points this week')
+                                    ],
+                                  )
+                                ],
+                              )
+                            ],
                           ),
+                        ),
+                      ),
+                      // Badges, medals, and streak
+                      Padding(
+                        padding: const EdgeInsets.only(top: 20),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              padding: EdgeInsets.fromLTRB(15, 10, 15, 50),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.black),
+                              ),
+                              child: Column(
+                                children: [
+                                  Icon(Icons.sports_golf_rounded),
+                                  Text('15'),
+                                  Text('Missions')
+                                ],
+                              ),
+                            ), 
+                             SizedBox(width: 20),
+                            Container(
+                              padding: EdgeInsets.fromLTRB(15, 10, 15, 50),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.black),
+                              ),
+                              child: Column(
+                                children: [
+                                  Icon(Icons.sports_golf_rounded),
+                                  Text('8'),
+                                  Text('Medals')
+                                ],
+                              ),
+                            ), 
+                            SizedBox(width: 20),
+                            Container(
+                              padding: EdgeInsets.fromLTRB(15, 10, 15, 50),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.black),
+                              ),
+                              child: Column(
+                                children: [
+                                  Icon(Icons.sports_golf_rounded),
+                                  Text('12'),
+                                  Text('Streak')
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                       )
                     ],
@@ -187,6 +235,48 @@ class Dashboard extends StatelessWidget {
             ),
           );
         },
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        selectedItemColor: Colors.black,
+        unselectedItemColor: Colors.grey,
+        type: BottomNavigationBarType.fixed,
+        selectedLabelStyle: TextStyle(
+          fontSize: 14,
+        ),
+        unselectedLabelStyle: TextStyle(
+          fontSize: 14,
+        ),
+        currentIndex: 0,
+        onTap: (index) {
+          // handle tab change
+        },
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(
+              Icons.home,
+                ),
+            label: 'Home'
+            ),
+          BottomNavigationBarItem(
+            icon: Icon(
+              Icons.games,
+    
+            ),
+            label: 'Activity',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(
+              Icons.history,
+                ),
+            label: 'History'
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(
+              Icons.person_2,
+                ),
+            label: 'Profile'
+          ),
+        ],
       ),
     );
   }
