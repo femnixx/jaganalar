@@ -1,10 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:jaganalar/Activity.dart';
 import 'package:jaganalar/SignIn.dart';
 import 'Supabase.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-class Dashboard extends StatelessWidget {
+class Dashboard extends StatefulWidget {
   const Dashboard({super.key});
+
+  @override
+  State<Dashboard> createState() => _DashboardState();
+}
+
+class _DashboardState extends State<Dashboard> {
+  int _currentIndex = 0;
 
   Future<String?> getUsername(BuildContext context) async {
     final user = SupabaseService.client.auth.currentUser;
@@ -246,9 +254,26 @@ class Dashboard extends StatelessWidget {
         unselectedLabelStyle: TextStyle(
           fontSize: 14,
         ),
-        currentIndex: 0,
         onTap: (index) {
           // handle tab change
+          switch (index) {
+            case 0:
+            Navigator.push(
+              context, 
+              MaterialPageRoute(
+                builder: (_) => Dashboard(),
+              )
+            );
+            break;
+            case 1: 
+              Navigator.push(
+              context, 
+              MaterialPageRoute(
+                builder: (_) => Activity(),
+              )
+            );
+            break;
+          } 
         },
         items: const [
           BottomNavigationBarItem(
