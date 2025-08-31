@@ -327,10 +327,12 @@ class _SignupState extends State<Signup> {
               ],
             ),
             SizedBox(height: 15),
-            Text(
-              'Dengan mendaftar, anda menyetujui Ketentuan Layanan dan Kebijakan Privasi Meksiko',
-              textAlign: TextAlign.center,
-              )
+            Center(
+              child: Text(
+                'Dengan mendaftar, anda menyetujui Ketentuan Layanan dan Kebijakan Privasi Meksiko',
+                textAlign: TextAlign.center,
+                ),
+            )
             ],
           ),
         ),
