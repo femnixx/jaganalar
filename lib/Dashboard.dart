@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:jaganalar/Activity.dart';
+import 'package:jaganalar/History.dart';
+import 'package:jaganalar/Profile.dart';
 import 'package:jaganalar/SignIn.dart';
 import 'Supabase.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -270,6 +272,22 @@ class _DashboardState extends State<Dashboard> {
               context, 
               MaterialPageRoute(
                 builder: (_) => Activity(),
+              )
+            );
+            break;
+            case 2: 
+              Navigator.push(
+                context, 
+                MaterialPageRoute(
+                  builder: (_) => History(),
+                )
+              );
+              break;
+            case 3: 
+              Navigator.push(
+              context, 
+              MaterialPageRoute(
+                builder: (_) => Profile(),
               )
             );
             break;
