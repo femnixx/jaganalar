@@ -137,6 +137,9 @@ class _SignupState extends State<Signup> {
               ),
               SizedBox(height: 20,),
               TextField(
+                onChanged:(text) => setState(() {
+                  
+                }),
                 controller: usernameController,
                 decoration: InputDecoration(
                   hintText: 'Nama lengkap',
@@ -154,6 +157,9 @@ class _SignupState extends State<Signup> {
               ),
               SizedBox(height: 20,),
               TextField(
+                 onChanged:(text) => setState(() {
+                  
+                }),
                 controller: emailController,
                 decoration: InputDecoration(
                   hintText: 'Email',
@@ -171,6 +177,9 @@ class _SignupState extends State<Signup> {
               ),
               SizedBox(height: 20,),
               TextField(
+                 onChanged:(text) => setState(() {
+                  
+                }),
                 controller: passwordController,
                 obscureText: _hidePassword,
                 decoration: InputDecoration(
@@ -198,6 +207,9 @@ class _SignupState extends State<Signup> {
               ),
               SizedBox(height: 20,),
               TextField(
+                 onChanged:(text) => setState(() {
+                  
+                }),
                 controller: confirmPasswordController,
                 obscureText: _hidePassword2,
                 decoration: InputDecoration(
@@ -226,7 +238,11 @@ class _SignupState extends State<Signup> {
               SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () {
-
+                  allValid ? signUp() : ScaffoldMessenger.of(context).showSnackBar(
+                     SnackBar(
+                      content: Text('All fields must be filled.')
+                    ),
+                  );
                 },
                 style: ButtonStyle(
                   minimumSize: WidgetStateProperty.all(Size(double.infinity, 50)),

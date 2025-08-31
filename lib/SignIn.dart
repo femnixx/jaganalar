@@ -3,10 +3,12 @@ import 'package:dash_chat_2/dash_chat_2.dart';
 import 'package:flutter/material.dart';
 import 'package:jaganalar/Dashboard.dart';
 import 'package:jaganalar/SignIn.dart';
+import 'package:jaganalar/SignUp.dart';
 import 'package:jaganalar/home_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'Supabase.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Signin extends StatefulWidget {
   Signin({Key? key}) : super(key: key);
@@ -20,9 +22,29 @@ class _SigninState extends State<Signin> {
   final TextEditingController emailController = TextEditingController();
 
   bool _hidePassword = true;
-  bool _hidePassword2 = true;
-  
-  // sign up
+  bool _rememberMe = false;
+
+  // handle remember me 
+  Future<void> saveRememberMe(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('rememberMe', value);
+  }
+  Future<bool> loadRememberMe() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('rememberMe') ?? false;
+  }
+
+  @override
+  void didChangeAppLifeCycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.detached) {
+      if (_rememberMe == false) {
+        SupabaseService.client.auth.signOut();
+      }
+    } 
+  }
+
+
+  // sign in
   void signIn() async {
     String password = passwordController.text;
     String email = emailController.text;
@@ -123,6 +145,9 @@ class _SigninState extends State<Signin> {
               ),
               SizedBox(height: 20,),
               TextField(
+                 onChanged:(text) => setState(() {
+                  
+                }),
                 controller: emailController,
                 decoration: InputDecoration(
                   hintText: 'Email',
@@ -140,6 +165,9 @@ class _SigninState extends State<Signin> {
               ),
               SizedBox(height: 20,),
               TextField(
+                 onChanged:(text) => setState(() {
+                  
+                }),
                 controller: passwordController,
                 obscureText: _hidePassword,
                 decoration: InputDecoration(
@@ -172,27 +200,17 @@ class _SigninState extends State<Signin> {
                   // Remember me option
                   Row(
                     children: [
-                      ElevatedButton(
-                        style: ButtonStyle(
-                          shadowColor: WidgetStateProperty.all(Colors.transparent),
-                          backgroundColor: WidgetStateProperty.all(Colors.transparent),
-                          shape: WidgetStateProperty.all(
-                            RoundedRectangleBorder(
-                              borderRadius: BorderRadiusGeometry.circular(8)
-                            ),
-                          ), 
-                          fixedSize: WidgetStateProperty.all(Size(20, 40)),
-                          // button is flattened out for some reason idk
-                          side: WidgetStateProperty.all(BorderSide(
-                            color: Color(0xffE4E4E7),
-                          )),
-                        ),
-                        onPressed: () {
-                          // remember me function or idk
-                        }, 
-                        child: Text('')
+                      Checkbox(
+                        value: _rememberMe,
+                        checkColor: Colors.white,
+                        activeColor: Color(0xff1C6EA4), 
+                        onChanged: (bool? newValue) {
+                          setState(() {
+                          _rememberMe = newValue!;
+                          });
+                        },
                       ),
-                      SizedBox(width: 15),
+                      SizedBox(width: 5),
                       Text(
                         'Remember me',
                         style: TextStyle(
@@ -204,7 +222,7 @@ class _SigninState extends State<Signin> {
                   ),
                   TextButton(
                     onPressed: () {
-
+                      
                     },
                     child:
                     Text('Lupa Password?',
@@ -306,7 +324,7 @@ class _SigninState extends State<Signin> {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => Dashboard())
+                      MaterialPageRoute(builder: (context) => Signup())
                     );
                   }, 
                   child: Text(
