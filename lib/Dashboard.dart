@@ -74,7 +74,26 @@ class Dashboard extends StatelessWidget {
                     thickness: 0.5,
                   ),
                   SizedBox(height: 20),
-
+                  // level indicator
+                  Column(
+                    children: [
+                      // Level and XP
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('Level 5'),
+                          Text('250/500 XP menuju Level 6')
+                        ],
+                      ),
+                      SizedBox(height: 10),
+                      LinearProgressIndicator(
+                        value: 0.7,
+                        backgroundColor: Colors.blueGrey[400],
+                        color: Colors.black,
+                      ),
+                      Text('hji')
+                    ],
+                  )
                 ],
               ),
             ),
