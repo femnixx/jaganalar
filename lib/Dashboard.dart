@@ -5,40 +5,61 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 class Dashboard extends StatelessWidget {
   const Dashboard({super.key});
-  
+
+  Future<String?> getUsername(BuildContext context) async {
+    final user = SupabaseService.client.auth.currentUser;
+
+    if (user == null) {
+      // Redirect to sign in if no session
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => Signin()),
+        );
+      });
+      return null;
+    }
+
+    final response = await SupabaseService.client
+        .from('users')
+        .select('username')
+        .eq('uuid', user.id) // Make sure 'uuid' column matches auth user id
+        .single();
+
+    return response['username'] as String?;
+  }
 
   @override
   Widget build(BuildContext context) {
-  Future <String?> getUsername() async { 
-    final user = SupabaseService.client.auth.currentSession;
-    if (user == null) {
-      Navigator.pushReplacement(
-        context, 
-        MaterialPageRoute(
-          builder: (context) => Signin())
-      );
-    } 
-
-  // final response = await Supabase.instance.client
-  //   .from('users')
-  //   .select('username')
-  //   .eq('id', Supabase.inst)
-  } 
-
     return Scaffold(
-      body: SafeArea(
-        child: Row(
-          children: [
-            CircleAvatar(),
-            Column(
+      body: FutureBuilder<String?>(
+        future: getUsername(context),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (!snapshot.hasData || snapshot.data == null) {
+            return const Center(child: Text('No user found'));
+          }
+
+          final username = snapshot.data!;
+          return SafeArea(
+            child: Row(
               children: [
-                Text('Selamat pagi, Nana'),
-                Text('Hi there')
+                const CircleAvatar(),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Selamat pagi, $username'),
+                    const Text('Hi there'),
+                  ],
+                ),
               ],
-            )
-          ],
-        ) 
-      )
+            ),
+          );
+        },
+      ),
     );
   }
 }

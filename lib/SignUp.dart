@@ -32,6 +32,7 @@ class _SignupState extends State<Signup> {
         );
 
         await SupabaseService.client.from('users').insert({
+          'uuid': res.user?.id,
           'username': username,
           'email': email,
           'timestamp': DateTime.now().toIso8601String(),
