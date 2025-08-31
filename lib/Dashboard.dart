@@ -91,7 +91,95 @@ class Dashboard extends StatelessWidget {
                         backgroundColor: Colors.blueGrey[400],
                         color: Colors.black,
                       ),
-                      Text('hji')
+                      SizedBox(height: 20),
+                      Container(
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: Colors.black,
+                            width: 2,
+                          ),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            children: [
+                              Text('Misi Mingguan'),
+                              SizedBox(height: 16),
+                              Text('Pendeteksi misinformasi digital'),
+                              SizedBox(height: 16),
+                              ElevatedButton(
+                                onPressed: () {
+                                  // implement logic to re direct to mission page
+                                }, 
+                                child: Text('Mulai Misi')
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 16),
+                      Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: Colors.black,
+                            width: 2,
+                          ) 
+                        ),
+                        child: Padding(
+                          padding: EdgeInsetsGeometry.all(30),
+                          child: Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                // Ranking
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Text('Ranking kamu'),
+                                    SizedBox(width: 15),
+                                    TextButton(
+                                      onPressed: () {
+                                        // Implement view logic if possible
+                                      }, 
+                                      child: Text('View All')
+                                    )
+                                  ],
+                                ),
+                                // The actual ranking like number and how many points you have
+                                Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        border: Border.all(color: Colors.black),
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(10.0),
+                                        child: Text('#12'),
+                                      ),
+                                    ),
+                                    // The ranking like ranking 12, how many points this week
+                                    SizedBox(width: 15),
+                                    Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Text('Ranking 12'),
+                                        Text('1,280 points this week')
+                                      ],
+                                    )
+                                  ],
+                                )
+                              ],
+                            ),
+                          ),
+                        ),
+                      )
                     ],
                   )
                 ],
