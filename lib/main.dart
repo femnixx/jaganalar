@@ -4,6 +4,7 @@ import 'package:jaganalar/Dashboard.dart';
 import 'package:jaganalar/Getstarted.dart';
 import 'package:jaganalar/SignIn.dart';
 import 'package:jaganalar/SignUp.dart';
+import 'package:jaganalar/Splashscreen.dart';
 import 'package:jaganalar/home_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'consts.dart';
@@ -35,7 +36,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: session != null ? Dashboard() : OnboardingScreen(),
+      home: session != null ? Dashboard() : Splashscreen(),
     );
   }
 }
