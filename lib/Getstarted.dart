@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:jaganalar/SignIn.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
@@ -13,122 +14,130 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            ElevatedButton(
-              style: ButtonStyle(
-                shape: WidgetStateProperty.all(
-                  RoundedRectangleBorder(
-                    borderRadius: BorderRadiusGeometry.circular(8),
-                  ),
-                ),
-                backgroundColor: WidgetStateProperty.all(Color(0xff1C6EA4)),
-              ),
-              onPressed: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => Signin()),
-                );
-              },
-              child: Text(
-                'Lewati',
-                style: TextStyle(color: Colors.white, fontSize: 16),
-              ),
-            ),
-          ],
+    return Stack(
+      children: [
+        // Background SVG that covers the whole screen
+        Positioned.fill(
+          child: SvgPicture.asset('assets/copypaste2.svg', fit: BoxFit.cover),
         ),
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Column(
-            children: [
-              Expanded(
-                child: PageView(
-                  controller: _controller,
-                  children: [
-                    buildPage(
-                      firstText: "Asah Nalar ",
-                      secondText: "Setiap Hari",
-                      isFirstBlue: true,
-                      subtitle:
-                          "Dapatkan tantangan singkat berupa kuis dan trivia untuk melatih literasi digitalmu.",
-                    ),
-                    buildPage(
-                      firstText: "Jejak Belajarmu ",
-                      secondText: "Tersimpan",
-                      isStacked: true,
-                      isFirstBlue: false,
-                      subtitle:
-                          "Lihat kembali misi yang sudah kamu selesaikan dan pantau perkembanganmu",
-                    ),
-                    buildPage(
-                      firstText: "Belajar Jadi ",
-                      secondText: "Seru",
-                      isFirstBlue: false,
-                      subtitle:
-                          "Kumpulkan XP, naik level, dan raih badge keren di leaderboard",
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(height: 32),
 
-              /// DOTS
-              SmoothPageIndicator(
-                controller: _controller,
-                count: _pageCount,
-                effect: WormEffect(
-                  dotHeight: 10,
-                  dotWidth: 10,
-                  activeDotColor: Colors.blue,
-                ),
-              ),
-
-              SizedBox(height: 32),
+        // Scaffold for content, AppBar, buttons, etc.
+        Scaffold(
+          backgroundColor: Colors.transparent, // important!
+          appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            actions: [
               ElevatedButton(
                 style: ButtonStyle(
-                  minimumSize: WidgetStateProperty.all(
-                    Size(double.infinity, 52),
-                  ),
-                  shape: WidgetStateProperty.all(
+                  shape: MaterialStateProperty.all(
                     RoundedRectangleBorder(
-                      borderRadius: BorderRadiusGeometry.circular(8),
+                      borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  backgroundColor: WidgetStateProperty.all(Color(0xff1C6EA4)),
+                  backgroundColor: MaterialStateProperty.all(Color(0xff1C6EA4)),
                 ),
                 onPressed: () {
-                  if (_controller.page == _pageCount - 1) {
-                    // last page → navigate
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (context) => Signin()),
-                    );
-                    print("Go to Home");
-                  } else {
-                    _controller.nextPage(
-                      duration: Duration(milliseconds: 400),
-                      curve: Curves.easeInOut,
-                    );
-                  }
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => Signin()),
+                  );
                 },
                 child: Text(
-                  "Lanjutkan",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.normal,
-                  ),
+                  'Lewati',
+                  style: TextStyle(color: Colors.white, fontSize: 16),
                 ),
               ),
-              SizedBox(height: 40),
+              SizedBox(width: 12),
             ],
           ),
+          body: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                children: [
+                  Expanded(
+                    child: PageView(
+                      controller: _controller,
+                      children: [
+                        buildPage(
+                          firstText: "Asah Nalar ",
+                          secondText: "Setiap Hari",
+                          isFirstBlue: true,
+                          subtitle:
+                              "Dapatkan tantangan singkat berupa kuis dan trivia untuk melatih literasi digitalmu.",
+                        ),
+                        buildPage(
+                          firstText: "Jejak Belajarmu ",
+                          secondText: "Tersimpan",
+                          isStacked: true,
+                          isFirstBlue: false,
+                          subtitle:
+                              "Lihat kembali misi yang sudah kamu selesaikan dan pantau perkembanganmu",
+                        ),
+                        buildPage(
+                          firstText: "Belajar Jadi ",
+                          secondText: "Seru",
+                          isFirstBlue: false,
+                          subtitle:
+                              "Kumpulkan XP, naik level, dan raih badge keren di leaderboard",
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 32),
+                  SmoothPageIndicator(
+                    controller: _controller,
+                    count: _pageCount,
+                    effect: WormEffect(
+                      dotHeight: 10,
+                      dotWidth: 10,
+                      activeDotColor: Colors.blue,
+                    ),
+                  ),
+                  SizedBox(height: 32),
+                  ElevatedButton(
+                    style: ButtonStyle(
+                      minimumSize: MaterialStateProperty.all(
+                        Size(double.infinity, 52),
+                      ),
+                      shape: MaterialStateProperty.all(
+                        RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      backgroundColor: MaterialStateProperty.all(
+                        Color(0xff1C6EA4),
+                      ),
+                    ),
+                    onPressed: () {
+                      if (_controller.page == _pageCount - 1) {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (context) => Signin()),
+                        );
+                      } else {
+                        _controller.nextPage(
+                          duration: Duration(milliseconds: 400),
+                          curve: Curves.easeInOut,
+                        );
+                      }
+                    },
+                    child: Text(
+                      "Lanjutkan",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.normal,
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 40),
+                ],
+              ),
+            ),
+          ),
         ),
-      ),
+      ],
     );
   }
 
@@ -137,7 +146,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     required String secondText,
     required bool isFirstBlue,
     required String subtitle,
-    bool isStacked = false, // new flag
+    bool isStacked = false,
   }) {
     return Center(
       child: Column(
@@ -201,70 +210,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             style: TextStyle(fontSize: 16),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class OnboardingPage extends StatelessWidget {
-  final String title1;
-  final Color title1Color;
-  final String title2;
-  final String description;
-  final VoidCallback onNext;
-
-  const OnboardingPage({
-    super.key,
-    required this.title1,
-    required this.title1Color,
-    required this.title2,
-    required this.description,
-    required this.onNext,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.end,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            // Title row
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  title1,
-                  style: TextStyle(
-                    color: title1Color,
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Text(
-                  title2,
-                  style: const TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-
-            // Description
-            Text(
-              description,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 16),
-            ),
-
-            // Next button
-            ElevatedButton(onPressed: onNext, child: const Text('Lanjutkan')),
-
-            const SizedBox(height: 40), // spacing from bottom
-          ],
-        ),
       ),
     );
   }
