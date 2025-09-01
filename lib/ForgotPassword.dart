@@ -19,12 +19,14 @@ class _ForgotPasswordState extends State<ForgotPassword> {
   // timer
   int _seconds = 60;
   Timer? _timer;
+  bool _isButtonDisabled = false;
 
   void _startCountdown() {
     _timer?.cancel();
 
     setState(() {
       _seconds = 60;
+      _isButtonDisabled = true;
     });
 
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -33,6 +35,9 @@ class _ForgotPasswordState extends State<ForgotPassword> {
           _seconds--;
         });
       } else {
+        setState(() {
+          _isButtonDisabled = false;
+        });
         timer.cancel();
       }
     });
@@ -41,6 +46,7 @@ class _ForgotPasswordState extends State<ForgotPassword> {
   @override
   void dispose() {
     _timer?.cancel();
+    emailController.dispose();
     super.dispose();
   }
 
@@ -49,14 +55,13 @@ class _ForgotPasswordState extends State<ForgotPassword> {
     final String password = passwordController.text;
     final String confirmpassword = confirmPasswordController.text;
 
-    final UserResponse res = await SupabaseService.client.auth.updateUser(
-      UserAttributes(password: password),
-    );
-    final User? updatedUser = res.user;
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => Signin()),
-    );
+    try {
+      await SupabaseService.client.auth.resetPasswordForEmail(email);
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("error: $e")));
+    }
   }
 
   @override
@@ -117,18 +122,32 @@ class _ForgotPasswordState extends State<ForgotPassword> {
             Row(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                TextButton(
-                  onPressed: () {
-                    // implement logic
-                  },
-                  child: Text(
-                    'Belum menerima email?',
-                    style: TextStyle(fontSize: 16, color: Colors.black),
-                  ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    TextButton(
+                      onPressed: !_isButtonDisabled ? _startCountdown : null,
+                      child: Text(
+                        'Belum menerima email?',
+                        style: TextStyle(fontSize: 16, color: Colors.black),
+                      ),
+                    ),
+                    SizedBox(height: 10),
+                    if (_seconds > 0) ...[
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 15),
+                        child: Text(
+                          _seconds > 0 ? "Kirim ulang dalam 00:$_seconds" : "",
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ],
             ),
             SizedBox(height: 32),
+
+            // Kirim button
             ElevatedButton(
               style: ButtonStyle(
                 shape: WidgetStateProperty.all(
@@ -137,18 +156,27 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                   ),
                 ),
                 backgroundColor: WidgetStateProperty.all(
-                  isValid ? Color(0xff1C6EA4) : Color(0xffD7D7D7),
+                  isValid && !_isButtonDisabled
+                      ? Color(0xff1C6EA4)
+                      : Color(0xffD7D7D7),
                 ),
                 shadowColor: WidgetStateProperty.all(Colors.transparent),
                 minimumSize: WidgetStateProperty.all(Size(double.infinity, 50)),
               ),
-              onPressed: () {},
+              onPressed: (!_isButtonDisabled && isValid)
+                  ? () {
+                      _startCountdown();
+                      updatePassword();
+                    }
+                  : null,
               child: Text(
                 'Kirim',
                 style: TextStyle(
                   fontWeight: FontWeight.w500,
                   fontSize: 16,
-                  color: isValid ? Colors.white : Colors.grey,
+                  color: isValid && !_isButtonDisabled
+                      ? Colors.white
+                      : Colors.grey,
                 ),
               ),
             ),
