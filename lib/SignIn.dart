@@ -83,6 +83,7 @@ class _SigninState extends State<Signin> {
         passwordController.text.isNotEmpty;
 
     return Scaffold(
+      appBar: AppBar(title: Text('')),
       body: SafeArea(
         top: true,
         bottom: true,
@@ -93,31 +94,15 @@ class _SigninState extends State<Signin> {
             children: [
               // Logo and name
               Padding(
-                padding: const EdgeInsets.only(top: 86.0),
+                padding: const EdgeInsets.only(top: 32.0),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Container(
-                      decoration: BoxDecoration(color: Color(0xff1C6EA4)),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 5.0,
-                          vertical: 10,
-                        ),
-                        child: Text(
-                          'Logo',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
+                    SvgPicture.asset('assets/Logo.svg', width: 80, height: 80),
                     Padding(
                       padding: const EdgeInsets.only(left: 12.0),
                       child: Text(
-                        'Nama',
+                        'JagaNalar',
                         style: TextStyle(
                           color: Colors.black,
                           fontWeight: FontWeight.w700,
