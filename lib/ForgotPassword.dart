@@ -75,7 +75,7 @@ class _ForgotPasswordState extends State<ForgotPassword> {
         title: Title(
           color: Colors.black,
           child: Text(
-            'Lupa Password',
+            'Lupa Password?',
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
         ),
