@@ -1,7 +1,11 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'Supabase.dart';
 import 'SignIn.dart';
+import 'Dashboard.dart';
+import 'History.dart';
+import 'Activity.dart';
 
 class Profile extends StatefulWidget {
   const Profile({super.key});
@@ -30,6 +34,7 @@ class _ProfileState extends State<Profile> {
 
   @override
   Widget build(BuildContext context) {
+    int _currentIndex = 3;
     return Scaffold(
       body: Column(
         children: [
@@ -39,7 +44,10 @@ class _ProfileState extends State<Profile> {
             children: [
               ElevatedButton(
                 onPressed: () {
-                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => Dashboard()),
+                  );
                 },
                 child: Text('Click me to go back'),
               ),
@@ -51,6 +59,51 @@ class _ProfileState extends State<Profile> {
               ),
             ],
           ),
+        ],
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        selectedItemColor: Colors.black,
+        unselectedItemColor: Colors.grey,
+        type: BottomNavigationBarType.fixed,
+        selectedLabelStyle: const TextStyle(fontSize: 14),
+        unselectedLabelStyle: const TextStyle(fontSize: 14),
+        currentIndex: _currentIndex,
+        onTap: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+          switch (index) {
+            case 0:
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const Dashboard()),
+              );
+              break;
+            case 1:
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => Activity()),
+              );
+              break;
+            case 2:
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => History()),
+              );
+              break;
+            case 3:
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => Profile()),
+              );
+              break;
+          }
+        },
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.games), label: 'Activity'),
+          BottomNavigationBarItem(icon: Icon(Icons.history), label: 'History'),
+          BottomNavigationBarItem(icon: Icon(Icons.person_2), label: 'Profile'),
         ],
       ),
     );

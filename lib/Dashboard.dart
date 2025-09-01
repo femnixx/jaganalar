@@ -26,10 +26,9 @@ class _DashboardState extends State<Dashboard> {
   }
 
   int xpForNextLevel(int level) {
-    return 100 + (level - 1) * 20; // XP needed to reach next level from current
+    return 100 + (level - 1) * 20;
   }
 
-  // Compute level from total XP
   Future<int> computeLevel(int totalXP) async {
     int level = 1;
     int xpNeeded = xpForNextLevel(level);
@@ -39,7 +38,6 @@ class _DashboardState extends State<Dashboard> {
       level++;
       xpNeeded = xpForNextLevel(level);
     }
-
     return level;
   }
 
@@ -50,21 +48,14 @@ class _DashboardState extends State<Dashboard> {
     int currentLevel = user.level ?? 0;
     int totalXP = user.xp ?? 0;
 
-    // Calculate the total XP required to reach the current level
-    int xpNeededForCurrentLevel = 0;
-    for (int i = 1; i < currentLevel; i++) {
-      xpNeededForCurrentLevel += xpForNextLevel(i);
-    }
-
-    int newLevel = currentLevel;
-    int remainingXP = totalXP - xpNeededForCurrentLevel;
+    int newLevel = 1;
+    int remainingXP = totalXP;
 
     while (remainingXP >= xpForNextLevel(newLevel)) {
       remainingXP -= xpForNextLevel(newLevel);
       newLevel++;
     }
 
-    // Update level and remaining XP in the database
     if (newLevel != currentLevel) {
       await SupabaseService.client
           .from('users')
@@ -103,7 +94,6 @@ class _DashboardState extends State<Dashboard> {
         .eq('uuid', userId)
         .select();
 
-    // Call nextLevel after gaining XP to check for a level up
     await nextLevel();
 
     setState(() {
@@ -137,14 +127,8 @@ class _DashboardState extends State<Dashboard> {
             return total;
           }
 
-          int xpStart = xpForPreviousLevels(
-            currentLevel,
-          ); // XP accumulated before this level
-          int xpNext =
-              xpStart +
-              xpForNextLevel(
-                currentLevel,
-              ); // total XP needed to reach next level
+          int xpStart = xpForPreviousLevels(currentLevel);
+          int xpNext = xpStart + xpForNextLevel(currentLevel);
           double progress = (currentXP - xpStart) / (xpNext - xpStart);
           progress = progress.clamp(0.0, 1.0);
 
@@ -153,7 +137,6 @@ class _DashboardState extends State<Dashboard> {
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               child: Column(
                 children: [
-                  // Top Row: Avatar & Notification
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -175,8 +158,6 @@ class _DashboardState extends State<Dashboard> {
                   ),
                   const Divider(color: Colors.black, thickness: 0.5),
                   const SizedBox(height: 20),
-
-                  // Level & XP Progress
                   Column(
                     children: [
                       Row(
@@ -184,7 +165,7 @@ class _DashboardState extends State<Dashboard> {
                         children: [
                           Text('Level ${user.level}'),
                           Text(
-                            '${user.xp}/$xpNext XP menuju Level ${user.level! + 1}',
+                            '${currentXP}/$xpNext XP menuju Level ${user.level! + 1}',
                           ),
                         ],
                       ),
@@ -195,8 +176,6 @@ class _DashboardState extends State<Dashboard> {
                         color: Colors.black,
                       ),
                       const SizedBox(height: 20),
-
-                      // Weekly Mission
                       Container(
                         width: double.infinity,
                         decoration: BoxDecoration(
@@ -213,10 +192,6 @@ class _DashboardState extends State<Dashboard> {
                               ElevatedButton(
                                 onPressed: () async {
                                   await gainXP();
-                                  await nextLevel();
-                                  print(
-                                    'Current XP: $currentXP/$xpForNextLevel($currentLevel)',
-                                  );
                                 },
                                 child: const Text('Mulai Misi'),
                               ),
@@ -225,8 +200,6 @@ class _DashboardState extends State<Dashboard> {
                         ),
                       ),
                       const SizedBox(height: 16),
-
-                      // Ranking Box
                       Container(
                         decoration: BoxDecoration(
                           border: Border.all(color: Colors.black, width: 2),
@@ -249,14 +222,11 @@ class _DashboardState extends State<Dashboard> {
                           ),
                         ),
                       ),
-
-                      // Badges, Medals & Streak
                       Padding(
                         padding: const EdgeInsets.only(top: 20),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            // Missions
                             Container(
                               padding: const EdgeInsets.fromLTRB(
                                 15,
@@ -276,8 +246,6 @@ class _DashboardState extends State<Dashboard> {
                               ),
                             ),
                             const SizedBox(width: 20),
-
-                            // Medals
                             Container(
                               padding: const EdgeInsets.fromLTRB(
                                 15,
@@ -297,8 +265,6 @@ class _DashboardState extends State<Dashboard> {
                               ),
                             ),
                             const SizedBox(width: 20),
-
-                            // Streak
                             Container(
                               padding: const EdgeInsets.fromLTRB(
                                 15,
@@ -328,8 +294,6 @@ class _DashboardState extends State<Dashboard> {
           );
         },
       ),
-
-      // Bottom Navigation
       bottomNavigationBar: BottomNavigationBar(
         selectedItemColor: Colors.black,
         unselectedItemColor: Colors.grey,
@@ -341,7 +305,6 @@ class _DashboardState extends State<Dashboard> {
           setState(() {
             _currentIndex = index;
           });
-
           switch (index) {
             case 0:
               Navigator.push(
