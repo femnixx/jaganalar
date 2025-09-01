@@ -56,11 +56,10 @@ class HomePageState extends State<HomePage> {
     if (session != null) {
       try {
         await SupabaseService.client.auth.signOut();
-        print("Signed out successfully.");
+        print("Signed out successfully!");
         Navigator.pushReplacement(
-          context, 
-          MaterialPageRoute(
-            builder: (context) => Signin())
+          context,
+          MaterialPageRoute(builder: (context) => Signin()),
         );
       } catch (error) {
         print(error);
@@ -81,20 +80,17 @@ class HomePageState extends State<HomePage> {
         children: [
           Padding(
             padding: const EdgeInsets.all(8),
-            child: ElevatedButton(
-              onPressed: logout, 
-              child: Text('Logout')
-            ),
+            child: ElevatedButton(onPressed: logout, child: Text('Logout')),
           ),
           Expanded(
             child: DashChat(
-        currentUser: currentUser,
-        messages: messages,
-        onSend: _sendMessage,
-      ),
-          )
+              currentUser: currentUser,
+              messages: messages,
+              onSend: _sendMessage,
+            ),
+          ),
         ],
-      )
+      ),
     );
   }
 
