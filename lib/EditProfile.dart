@@ -73,7 +73,16 @@ class _EditprofileState extends State<Editprofile> {
             ),
             SizedBox(height: 16),
             CircleAvatar(radius: 52.5),
-            SizedBox(height: 78),
+            SizedBox(height: 14),
+            Text(
+              'GANTI FOTO PROFIL',
+              style: TextStyle(
+                color: Color(0xff1C6EA4),
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            SizedBox(height: 40),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
