@@ -3,8 +3,10 @@ import 'package:jaganalar/Activity.dart';
 import 'package:jaganalar/History.dart';
 import 'package:jaganalar/Profile.dart';
 import 'package:jaganalar/SignIn.dart';
+import 'package:jaganalar/UserModel.dart';
 import 'Supabase.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'UserModel.dart';
 
 class Dashboard extends StatefulWidget {
   const Dashboard({super.key});
@@ -32,11 +34,11 @@ class _DashboardState extends State<Dashboard> {
 
     final response = await SupabaseService.client
         .from('users')
-        .select('username')
+        .select('username, medals, streak, missions, level, xp')
         .eq('uuid', user.id) // Make sure 'uuid' column matches auth user id
         .single();
 
-    return response['username'] as String?;
+    final userModel = Usermodel.fromMap(response);
   }
 
   @override
@@ -60,8 +62,8 @@ class _DashboardState extends State<Dashboard> {
               child: Column(
                 children: [
                   Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -79,10 +81,7 @@ class _DashboardState extends State<Dashboard> {
                       Center(child: Icon(Icons.notifications)),
                     ],
                   ),
-                  Divider(
-                    color: Colors.black,
-                    thickness: 0.5,
-                  ),
+                  Divider(color: Colors.black, thickness: 0.5),
                   SizedBox(height: 20),
                   // level indicator
                   Column(
@@ -92,7 +91,7 @@ class _DashboardState extends State<Dashboard> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text('Level 5'),
-                          Text('250/500 XP menuju Level 6')
+                          Text('250/500 XP menuju Level 6'),
                         ],
                       ),
                       SizedBox(height: 10),
@@ -105,10 +104,7 @@ class _DashboardState extends State<Dashboard> {
                       Container(
                         width: double.infinity,
                         decoration: BoxDecoration(
-                          border: Border.all(
-                            color: Colors.black,
-                            width: 2,
-                          ),
+                          border: Border.all(color: Colors.black, width: 2),
                         ),
                         child: Padding(
                           padding: const EdgeInsets.all(16.0),
@@ -121,8 +117,8 @@ class _DashboardState extends State<Dashboard> {
                               ElevatedButton(
                                 onPressed: () {
                                   // implement logic to re direct to mission page
-                                }, 
-                                child: Text('Mulai Misi')
+                                },
+                                child: Text('Mulai Misi'),
                               ),
                             ],
                           ),
@@ -131,10 +127,7 @@ class _DashboardState extends State<Dashboard> {
                       SizedBox(height: 16),
                       Container(
                         decoration: BoxDecoration(
-                          border: Border.all(
-                            color: Colors.black,
-                            width: 2,
-                          ),
+                          border: Border.all(color: Colors.black, width: 2),
                         ),
                         child: Padding(
                           padding: EdgeInsetsGeometry.all(30),
@@ -152,15 +145,15 @@ class _DashboardState extends State<Dashboard> {
                                   TextButton(
                                     onPressed: () {
                                       // Implement view logic if possible
-                                    }, 
-                                    child: Text('View All')
-                                  )
+                                    },
+                                    child: Text('View All'),
+                                  ),
                                 ],
                               ),
                               // The actual ranking like number and how many points you have
                               Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Container(
                                     decoration: BoxDecoration(
@@ -175,15 +168,16 @@ class _DashboardState extends State<Dashboard> {
                                   // The ranking like ranking 12, how many points this week
                                   SizedBox(width: 15),
                                   Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Text('Ranking 12'),
-                                      Text('1,280 points this week')
+                                      Text('1,280 points this week'),
                                     ],
-                                  )
+                                  ),
                                 ],
-                              )
+                              ),
                             ],
                           ),
                         ),
@@ -203,11 +197,11 @@ class _DashboardState extends State<Dashboard> {
                                 children: [
                                   Icon(Icons.sports_golf_rounded),
                                   Text('15'),
-                                  Text('Missions')
+                                  Text('Missions'),
                                 ],
                               ),
-                            ), 
-                             SizedBox(width: 20),
+                            ),
+                            SizedBox(width: 20),
                             Container(
                               padding: EdgeInsets.fromLTRB(15, 10, 15, 50),
                               decoration: BoxDecoration(
@@ -217,10 +211,10 @@ class _DashboardState extends State<Dashboard> {
                                 children: [
                                   Icon(Icons.sports_golf_rounded),
                                   Text('8'),
-                                  Text('Medals')
+                                  Text('Medals'),
                                 ],
                               ),
-                            ), 
+                            ),
                             SizedBox(width: 20),
                             Container(
                               padding: EdgeInsets.fromLTRB(15, 10, 15, 50),
@@ -231,15 +225,15 @@ class _DashboardState extends State<Dashboard> {
                                 children: [
                                   Icon(Icons.sports_golf_rounded),
                                   Text('12'),
-                                  Text('Streak')
+                                  Text('Streak'),
                                 ],
                               ),
                             ),
                           ],
                         ),
-                      )
+                      ),
                     ],
-                  )
+                  ),
                 ],
               ),
             ),
@@ -250,75 +244,42 @@ class _DashboardState extends State<Dashboard> {
         selectedItemColor: Colors.black,
         unselectedItemColor: Colors.grey,
         type: BottomNavigationBarType.fixed,
-        selectedLabelStyle: TextStyle(
-          fontSize: 14,
-        ),
-        unselectedLabelStyle: TextStyle(
-          fontSize: 14,
-        ),
+        selectedLabelStyle: TextStyle(fontSize: 14),
+        unselectedLabelStyle: TextStyle(fontSize: 14),
         onTap: (index) {
           // handle tab change
           switch (index) {
             case 0:
-            Navigator.push(
-              context, 
-              MaterialPageRoute(
-                builder: (_) => Dashboard(),
-              )
-            );
-            break;
-            case 1: 
               Navigator.push(
-              context, 
-              MaterialPageRoute(
-                builder: (_) => Activity(),
-              )
-            );
-            break;
-            case 2: 
-              Navigator.push(
-                context, 
-                MaterialPageRoute(
-                  builder: (_) => History(),
-                )
+                context,
+                MaterialPageRoute(builder: (_) => Dashboard()),
               );
               break;
-            case 3: 
+            case 1:
               Navigator.push(
-              context, 
-              MaterialPageRoute(
-                builder: (_) => Profile(),
-              )
-            );
-            break;
-          } 
+                context,
+                MaterialPageRoute(builder: (_) => Activity()),
+              );
+              break;
+            case 2:
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => History()),
+              );
+              break;
+            case 3:
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => Profile()),
+              );
+              break;
+          }
         },
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(
-              Icons.home,
-                ),
-            label: 'Home'
-            ),
-          BottomNavigationBarItem(
-            icon: Icon(
-              Icons.games,
-    
-            ),
-            label: 'Activity',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(
-              Icons.history,
-                ),
-            label: 'History'
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(
-              Icons.person_2,
-                ),
-            label: 'Profile'
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.games), label: 'Activity'),
+          BottomNavigationBarItem(icon: Icon(Icons.history), label: 'History'),
+          BottomNavigationBarItem(icon: Icon(Icons.person_2), label: 'Profile'),
         ],
       ),
     );
