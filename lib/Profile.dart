@@ -36,6 +36,18 @@ class _ProfileState extends State<Profile> {
   Widget build(BuildContext context) {
     int _currentIndex = 3;
     return Scaffold(
+      appBar: AppBar(
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            ElevatedButton.icon(
+              onPressed: () {},
+              icon: Icon(Icons.settings),
+              label: Text(''),
+            ),
+          ],
+        ),
+      ),
       body: Column(
         children: [
           Row(
