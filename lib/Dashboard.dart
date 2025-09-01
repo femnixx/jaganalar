@@ -18,34 +18,25 @@ class Dashboard extends StatefulWidget {
 class _DashboardState extends State<Dashboard> {
   int _currentIndex = 0;
 
-  Future<String?> getUsername(BuildContext context) async {
-    final user = SupabaseService.client.auth.currentUser;
-
-    if (user == null) {
-      // Redirect to sign in if no session
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => Signin()),
-        );
-      });
-      return null;
-    }
-
+  Future<UserModel?> fetchUser(String userId) async {
     final response = await SupabaseService.client
         .from('users')
-        .select('username, medals, streak, missions, level, xp')
-        .eq('uuid', user.id) // Make sure 'uuid' column matches auth user id
+        .select('*') // select all columns you want
+        .eq('uuid', userId)
         .single();
 
-    final userModel = Usermodel.fromMap(response);
+    if (response != null) {
+      return UserModel.fromMap(response);
+    }
+    return null;
   }
 
   @override
   Widget build(BuildContext context) {
+    final String userId;
     return Scaffold(
-      body: FutureBuilder<String?>(
-        future: getUsername(context),
+      body: FutureBuilder<UserModel?>(
+        future: fetchUser(Supabase.instance.client.auth.currentUser!.id),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -55,7 +46,7 @@ class _DashboardState extends State<Dashboard> {
             return const Center(child: Text('No user found'));
           }
 
-          final username = snapshot.data!;
+          final user = snapshot.data!;
           return SafeArea(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
@@ -72,8 +63,8 @@ class _DashboardState extends State<Dashboard> {
                           SizedBox(width: 8),
                           Column(
                             children: [
-                              Text('Selamat pagi, $username'),
-                              const Text('Level 5 * 1250 xp'),
+                              Text('Selamat pagi, ${user.username}'),
+                              Text('Level ${user.level} * ${user.xp} xp'),
                             ],
                           ),
                         ],
@@ -90,8 +81,10 @@ class _DashboardState extends State<Dashboard> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text('Level 5'),
-                          Text('250/500 XP menuju Level 6'),
+                          Text('Level ${user.level}'),
+                          Text(
+                            '${user.xp}/100 XP menuju Level ${user.level! + 1}',
+                          ),
                         ],
                       ),
                       SizedBox(height: 10),
