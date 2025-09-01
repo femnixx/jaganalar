@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:jaganalar/SignIn.dart';
 import 'package:jaganalar/Supabase.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'dart:async';
 
 class ForgotPassword extends StatefulWidget {
   const ForgotPassword({super.key});
@@ -14,6 +15,34 @@ class _ForgotPasswordState extends State<ForgotPassword> {
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
   TextEditingController confirmPasswordController = TextEditingController();
+
+  // timer
+  int _seconds = 60;
+  Timer? _timer;
+
+  void _startCountdown() {
+    _timer?.cancel();
+
+    setState(() {
+      _seconds = 60;
+    });
+
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_seconds > 0) {
+        setState(() {
+          _seconds--;
+        });
+      } else {
+        timer.cancel();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
 
   void updatePassword() async {
     final String email = emailController.text;
