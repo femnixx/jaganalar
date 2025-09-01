@@ -18,7 +18,13 @@ class Dashboard extends StatefulWidget {
 class _DashboardState extends State<Dashboard> {
   int _currentIndex = 0;
 
+  int xpForLevel(int level) {
+    // formula
+    return 100 + (level - 1) * 50;
+  }
+
   Future<UserModel?> fetchUser(String userId) async {
+    // inside widget
     final response = await SupabaseService.client
         .from('users')
         .select('*') // select all columns you want
@@ -47,6 +53,20 @@ class _DashboardState extends State<Dashboard> {
           }
 
           final user = snapshot.data!;
+
+          // ensure level and xp are not null
+          final int currentLevel = user.level ?? 1;
+          final int currentXP = user.level ?? 0;
+
+          // xp for current and next level
+          int xpStart = xpForLevel(currentLevel);
+          int xpNext = xpForLevel(currentXP + 1);
+
+          // calculate progress fraction (0.0 - 1.0)
+          double progress = (currentXP - xpStart) / (xpNext - xpStart);
+          if (progress < 0) progress = 0.0;
+          if (progress > 1) progress = 1.0;
+
           return SafeArea(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
@@ -89,7 +109,7 @@ class _DashboardState extends State<Dashboard> {
                       ),
                       SizedBox(height: 10),
                       LinearProgressIndicator(
-                        value: 0.7,
+                        value: progress,
                         backgroundColor: Colors.blueGrey[400],
                         color: Colors.black,
                       ),
