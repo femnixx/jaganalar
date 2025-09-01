@@ -79,28 +79,26 @@ class _SignupState extends State<Signup> {
       appBar: AppBar(title: Text('')),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 32),
           child: Column(
             children: [
               // Expanded block to center logo + app name vertically
-              Expanded(
-                child: Center(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      SvgPicture.asset('assets/Logo.svg'),
-                      SizedBox(width: 12),
-                      Text(
-                        'JagaNalar',
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 20,
-                        ),
+              Center(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    SvgPicture.asset('assets/Logo.svg'),
+                    SizedBox(width: 12),
+                    Text(
+                      'JagaNalar',
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 20,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
 
