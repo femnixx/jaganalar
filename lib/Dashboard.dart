@@ -2,11 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:jaganalar/Activity.dart';
 import 'package:jaganalar/History.dart';
 import 'package:jaganalar/Profile.dart';
-import 'package:jaganalar/SignIn.dart';
 import 'package:jaganalar/UserModel.dart';
 import 'Supabase.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'UserModel.dart';
 
 class Dashboard extends StatefulWidget {
   const Dashboard({super.key});
@@ -17,17 +15,73 @@ class Dashboard extends StatefulWidget {
 
 class _DashboardState extends State<Dashboard> {
   int _currentIndex = 0;
+  final String userId = SupabaseService.client.auth.currentUser!.id;
 
-  int xpForLevel(int level) {
-    // formula
-    return 100 + (level - 1) * 50;
+  late Future<UserModel?> userFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    userFuture = fetchUser(userId);
+  }
+
+  int xpForNextLevel(int level) {
+    return 100 + (level - 1) * 20; // XP needed to reach next level from current
+  }
+
+  // Compute level from total XP
+  Future<int> computeLevel(int totalXP) async {
+    int level = 1;
+    int xpNeeded = xpForNextLevel(level);
+
+    while (totalXP >= xpNeeded) {
+      totalXP -= xpNeeded;
+      level++;
+      xpNeeded = xpForNextLevel(level);
+    }
+
+    return level;
+  }
+
+  Future<void> nextLevel() async {
+    final user = await fetchUser(userId);
+    if (user == null) return;
+
+    int currentLevel = user.level ?? 0;
+    int totalXP = user.xp ?? 0;
+
+    // Calculate the total XP required to reach the current level
+    int xpNeededForCurrentLevel = 0;
+    for (int i = 1; i < currentLevel; i++) {
+      xpNeededForCurrentLevel += xpForNextLevel(i);
+    }
+
+    int newLevel = currentLevel;
+    int remainingXP = totalXP - xpNeededForCurrentLevel;
+
+    while (remainingXP >= xpForNextLevel(newLevel)) {
+      remainingXP -= xpForNextLevel(newLevel);
+      newLevel++;
+    }
+
+    // Update level and remaining XP in the database
+    if (newLevel != currentLevel) {
+      await SupabaseService.client
+          .from('users')
+          .update({'level': newLevel, 'xp': totalXP})
+          .eq('uuid', userId)
+          .select();
+    }
+
+    setState(() {
+      userFuture = fetchUser(userId);
+    });
   }
 
   Future<UserModel?> fetchUser(String userId) async {
-    // inside widget
     final response = await SupabaseService.client
         .from('users')
-        .select('*') // select all columns you want
+        .select('*')
         .eq('uuid', userId)
         .single();
 
@@ -37,12 +91,31 @@ class _DashboardState extends State<Dashboard> {
     return null;
   }
 
+  Future<void> gainXP() async {
+    final user = await fetchUser(userId);
+    if (user == null) return;
+
+    int newXP = (user.xp ?? 0) + 20;
+
+    await SupabaseService.client
+        .from('users')
+        .update({'xp': newXP})
+        .eq('uuid', userId)
+        .select();
+
+    // Call nextLevel after gaining XP to check for a level up
+    await nextLevel();
+
+    setState(() {
+      userFuture = fetchUser(userId);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    final String userId;
     return Scaffold(
       body: FutureBuilder<UserModel?>(
-        future: fetchUser(Supabase.instance.client.auth.currentUser!.id),
+        future: userFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -53,35 +126,43 @@ class _DashboardState extends State<Dashboard> {
           }
 
           final user = snapshot.data!;
+          final int currentLevel = user.level ?? 0;
+          final int currentXP = user.xp ?? 0;
 
-          // ensure level and xp are not null
-          final int currentLevel = user.level ?? 1;
-          final int currentXP = user.level ?? 0;
+          int xpForPreviousLevels(int level) {
+            int total = 0;
+            for (int i = 1; i < level; i++) {
+              total += xpForNextLevel(i);
+            }
+            return total;
+          }
 
-          // xp for current and next level
-          int xpStart = xpForLevel(currentLevel);
-          int xpNext = xpForLevel(currentXP + 1);
-
-          // calculate progress fraction (0.0 - 1.0)
+          int xpStart = xpForPreviousLevels(
+            currentLevel,
+          ); // XP accumulated before this level
+          int xpNext =
+              xpStart +
+              xpForNextLevel(
+                currentLevel,
+              ); // total XP needed to reach next level
           double progress = (currentXP - xpStart) / (xpNext - xpStart);
-          if (progress < 0) progress = 0.0;
-          if (progress > 1) progress = 1.0;
+          progress = progress.clamp(0.0, 1.0);
 
           return SafeArea(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               child: Column(
                 children: [
+                  // Top Row: Avatar & Notification
                   Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const CircleAvatar(),
-                          SizedBox(width: 8),
+                          const SizedBox(width: 8),
                           Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text('Selamat pagi, ${user.username}'),
                               Text('Level ${user.level} * ${user.xp} xp'),
@@ -89,15 +170,15 @@ class _DashboardState extends State<Dashboard> {
                           ),
                         ],
                       ),
-                      Center(child: Icon(Icons.notifications)),
+                      const Icon(Icons.notifications),
                     ],
                   ),
-                  Divider(color: Colors.black, thickness: 0.5),
-                  SizedBox(height: 20),
-                  // level indicator
+                  const Divider(color: Colors.black, thickness: 0.5),
+                  const SizedBox(height: 20),
+
+                  // Level & XP Progress
                   Column(
                     children: [
-                      // Level and XP
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -107,13 +188,15 @@ class _DashboardState extends State<Dashboard> {
                           ),
                         ],
                       ),
-                      SizedBox(height: 10),
+                      const SizedBox(height: 10),
                       LinearProgressIndicator(
                         value: progress,
                         backgroundColor: Colors.blueGrey[400],
                         color: Colors.black,
                       ),
-                      SizedBox(height: 20),
+                      const SizedBox(height: 20),
+
+                      // Weekly Mission
                       Container(
                         width: double.infinity,
                         decoration: BoxDecoration(
@@ -123,122 +206,114 @@ class _DashboardState extends State<Dashboard> {
                           padding: const EdgeInsets.all(16.0),
                           child: Column(
                             children: [
-                              Text('Misi Mingguan'),
-                              SizedBox(height: 16),
-                              Text('Pendeteksi misinformasi digital'),
-                              SizedBox(height: 16),
+                              const Text('Misi Mingguan'),
+                              const SizedBox(height: 16),
+                              const Text('Pendeteksi misinformasi digital'),
+                              const SizedBox(height: 16),
                               ElevatedButton(
-                                onPressed: () {
-                                  // implement logic to re direct to mission page
+                                onPressed: () async {
+                                  await gainXP();
+                                  await nextLevel();
+                                  print(
+                                    'Current XP: $currentXP/$xpForNextLevel($currentLevel)',
+                                  );
                                 },
-                                child: Text('Mulai Misi'),
+                                child: const Text('Mulai Misi'),
                               ),
                             ],
                           ),
                         ),
                       ),
-                      SizedBox(height: 16),
+                      const SizedBox(height: 16),
+
+                      // Ranking Box
                       Container(
                         decoration: BoxDecoration(
                           border: Border.all(color: Colors.black, width: 2),
                         ),
-                        child: Padding(
-                          padding: EdgeInsetsGeometry.all(30),
+                        child: const Padding(
+                          padding: EdgeInsets.all(30),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              // Ranking
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
                                   Text('Ranking kamu'),
                                   SizedBox(width: 15),
-                                  TextButton(
-                                    onPressed: () {
-                                      // Implement view logic if possible
-                                    },
-                                    child: Text('View All'),
-                                  ),
-                                ],
-                              ),
-                              // The actual ranking like number and how many points you have
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      border: Border.all(color: Colors.black),
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(10.0),
-                                      child: Text('#12'),
-                                    ),
-                                  ),
-                                  // The ranking like ranking 12, how many points this week
-                                  SizedBox(width: 15),
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text('Ranking 12'),
-                                      Text('1,280 points this week'),
-                                    ],
-                                  ),
+                                  Text('View All'),
                                 ],
                               ),
                             ],
                           ),
                         ),
                       ),
-                      // Badges, medals, and streak
+
+                      // Badges, Medals & Streak
                       Padding(
                         padding: const EdgeInsets.only(top: 20),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
+                            // Missions
                             Container(
-                              padding: EdgeInsets.fromLTRB(15, 10, 15, 50),
+                              padding: const EdgeInsets.fromLTRB(
+                                15,
+                                10,
+                                15,
+                                50,
+                              ),
                               decoration: BoxDecoration(
                                 border: Border.all(color: Colors.black),
                               ),
                               child: Column(
                                 children: [
-                                  Icon(Icons.sports_golf_rounded),
-                                  Text('15'),
-                                  Text('Missions'),
+                                  const Icon(Icons.sports_golf_rounded),
+                                  Text('${user.missions}'),
+                                  const Text('Missions'),
                                 ],
                               ),
                             ),
-                            SizedBox(width: 20),
+                            const SizedBox(width: 20),
+
+                            // Medals
                             Container(
-                              padding: EdgeInsets.fromLTRB(15, 10, 15, 50),
+                              padding: const EdgeInsets.fromLTRB(
+                                15,
+                                10,
+                                15,
+                                50,
+                              ),
                               decoration: BoxDecoration(
                                 border: Border.all(color: Colors.black),
                               ),
                               child: Column(
                                 children: [
-                                  Icon(Icons.sports_golf_rounded),
-                                  Text('8'),
-                                  Text('Medals'),
+                                  const Icon(Icons.sports_golf_rounded),
+                                  Text('${user.medals}'),
+                                  const Text('Medals'),
                                 ],
                               ),
                             ),
-                            SizedBox(width: 20),
+                            const SizedBox(width: 20),
+
+                            // Streak
                             Container(
-                              padding: EdgeInsets.fromLTRB(15, 10, 15, 50),
+                              padding: const EdgeInsets.fromLTRB(
+                                15,
+                                10,
+                                15,
+                                50,
+                              ),
                               decoration: BoxDecoration(
                                 border: Border.all(color: Colors.black),
                               ),
                               child: Column(
                                 children: [
-                                  Icon(Icons.sports_golf_rounded),
-                                  Text('12'),
-                                  Text('Streak'),
+                                  const Icon(Icons.sports_golf_rounded),
+                                  Text('${user.streak}'),
+                                  const Text('Streak'),
                                 ],
                               ),
                             ),
@@ -253,19 +328,25 @@ class _DashboardState extends State<Dashboard> {
           );
         },
       ),
+
+      // Bottom Navigation
       bottomNavigationBar: BottomNavigationBar(
         selectedItemColor: Colors.black,
         unselectedItemColor: Colors.grey,
         type: BottomNavigationBarType.fixed,
-        selectedLabelStyle: TextStyle(fontSize: 14),
-        unselectedLabelStyle: TextStyle(fontSize: 14),
+        selectedLabelStyle: const TextStyle(fontSize: 14),
+        unselectedLabelStyle: const TextStyle(fontSize: 14),
+        currentIndex: _currentIndex,
         onTap: (index) {
-          // handle tab change
+          setState(() {
+            _currentIndex = index;
+          });
+
           switch (index) {
             case 0:
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => Dashboard()),
+                MaterialPageRoute(builder: (_) => const Dashboard()),
               );
               break;
             case 1:
