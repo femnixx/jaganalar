@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gemini/flutter_gemini.dart';
 import 'package:jaganalar/Dashboard.dart';
+import 'package:jaganalar/Getstarted.dart';
 import 'package:jaganalar/SignIn.dart';
 import 'package:jaganalar/SignUp.dart';
 import 'package:jaganalar/home_page.dart';
@@ -34,7 +35,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: session != null ? HomePage() : Signin(),
+      home: session != null ? HomePage() : OnboardingScreen(),
     );
   }
 }
