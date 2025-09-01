@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:jaganalar/Activity.dart';
 import 'package:jaganalar/History.dart';
-import 'package:jaganalar/Profile.dart';
+import 'package:jaganalar/EditProfile.dart';
 import 'package:jaganalar/UserModel.dart';
 import 'Supabase.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -345,7 +345,7 @@ class _DashboardState extends State<Dashboard> {
             case 3:
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => Profile()),
+                MaterialPageRoute(builder: (_) => Editprofile()),
               );
               break;
           }
