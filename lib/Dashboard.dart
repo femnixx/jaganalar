@@ -19,6 +19,21 @@ class _DashboardState extends State<Dashboard> {
 
   late Future<UserModel?> userFuture;
 
+  Future<void> updateMissionCount() async {
+    final user = await fetchUser(userId);
+    int _addMissions = (user!.missions ?? 0) + 1;
+
+    final response = await SupabaseService.client
+        .from('users')
+        .update({'missions': _addMissions})
+        .eq('uuid', userId)
+        .select();
+    if (response != null) {
+      print('Successfully updated missions.');
+    }
+    setState(() {});
+  }
+
   @override
   void initState() {
     super.initState();
