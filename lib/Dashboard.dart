@@ -31,7 +31,9 @@ class _DashboardState extends State<Dashboard> {
     if (response != null) {
       print('Successfully updated missions.');
     }
-    setState(() {});
+    setState(() {
+      userFuture = fetchUser(userId);
+    });
   }
 
   @override
@@ -207,6 +209,7 @@ class _DashboardState extends State<Dashboard> {
                               ElevatedButton(
                                 onPressed: () async {
                                   await gainXP();
+                                  await updateMissionCount();
                                 },
                                 child: const Text('Mulai Misi'),
                               ),
