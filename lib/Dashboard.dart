@@ -103,7 +103,7 @@ class _DashboardState extends State<Dashboard> {
                         children: [
                           Text('Level ${user.level}'),
                           Text(
-                            '${user.xp}/${xpNext} XP menuju Level ${user.level! + 1}',
+                            '${user.xp}/$xpNext XP menuju Level ${user.level! + 1}',
                           ),
                         ],
                       ),
