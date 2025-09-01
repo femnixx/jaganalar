@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:jaganalar/Settings.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'Supabase.dart';
 import 'SignIn.dart';
@@ -54,7 +55,9 @@ class _EditprofileState extends State<Editprofile> {
                       Align(
                         alignment: Alignment.centerLeft,
                         child: IconButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
                           icon: Icon(Icons.arrow_back_ios),
                         ),
                       ),

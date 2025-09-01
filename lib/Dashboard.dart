@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:jaganalar/Activity.dart';
 import 'package:jaganalar/History.dart';
 import 'package:jaganalar/EditProfile.dart';
+import 'package:jaganalar/Profile.dart';
 import 'package:jaganalar/UserModel.dart';
 import 'Supabase.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -16,7 +17,6 @@ class Dashboard extends StatefulWidget {
 class _DashboardState extends State<Dashboard> {
   int _currentIndex = 0;
   final String userId = SupabaseService.client.auth.currentUser!.id;
-
   late Future<UserModel?> userFuture;
 
   Future<void> updateMissionCount() async {
@@ -345,7 +345,7 @@ class _DashboardState extends State<Dashboard> {
             case 3:
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => Editprofile()),
+                MaterialPageRoute(builder: (_) => Profile()),
               );
               break;
           }
