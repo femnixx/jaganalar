@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:jaganalar/SignIn.dart';
+import 'package:jaganalar/Supabase.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ForgotPassword extends StatefulWidget {
   const ForgotPassword({super.key});
@@ -9,6 +12,23 @@ class ForgotPassword extends StatefulWidget {
 
 class _ForgotPasswordState extends State<ForgotPassword> {
   TextEditingController emailController = TextEditingController();
+  TextEditingController passwordController = TextEditingController();
+  TextEditingController confirmPasswordController = TextEditingController();
+
+  void updatePassword() async {
+    final String email = emailController.text;
+    final String password = passwordController.text;
+    final String confirmpassword = confirmPasswordController.text;
+
+    final UserResponse res = await SupabaseService.client.auth.updateUser(
+      UserAttributes(password: password),
+    );
+    final User? updatedUser = res.user;
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => Signin()),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +38,13 @@ class _ForgotPasswordState extends State<ForgotPassword> {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: Title(color: Colors.black, child: Text('Lupa Password')),
+        title: Title(
+          color: Colors.black,
+          child: Text(
+            'Lupa Password',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -26,30 +52,54 @@ class _ForgotPasswordState extends State<ForgotPassword> {
           children: [
             Padding(
               padding: const EdgeInsets.only(top: 32),
-              child: TextField(
-                onChanged: (text) => {setState(() {})},
-                controller: emailController,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Color(0xffDBDCDC)),
+              child: Column(
+                children: [
+                  Text(
+                    'Masukkan email anda untuk proses verifikasi. Kami akan mengirimkan kode tautan khusus ke email anda unntuk mengatur ulang password.',
+                    style: TextStyle(
+                      color: Color(0xff71717A),
+                      fontWeight: FontWeight.normal,
+                      fontSize: 16,
+                    ),
+                    textAlign: TextAlign.justify,
                   ),
-                  hint: Text(
-                    'Email',
-                    style: TextStyle(color: Color(0xff8B8F90)),
+                  SizedBox(height: 12),
+                  TextField(
+                    onChanged: (text) => {setState(() {})},
+                    controller: emailController,
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: Color(0xffDBDCDC)),
+                      ),
+                      hint: Text(
+                        'Email',
+                        style: TextStyle(
+                          color: Color(0xff8B8F90),
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: 13),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                TextButton(
+                  onPressed: () {
+                    // implement logic
+                  },
+                  child: Text(
+                    'Belum menerima email?',
+                    style: TextStyle(fontSize: 16, color: Colors.black),
                   ),
                 ),
-              ),
+              ],
             ),
-            SizedBox(height: 10),
-            Text(
-              'Masukkan email anda untuk proses verifikasi, kami akann nmengirimkan kode 5 digit ke email anda',
-              style: TextStyle(
-                color: Color(0xff71717A),
-                fontWeight: FontWeight.normal,
-              ),
-            ),
-            SizedBox(height: 42),
+            SizedBox(height: 32),
             ElevatedButton(
               style: ButtonStyle(
                 shape: WidgetStateProperty.all(
@@ -68,7 +118,7 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                 'Kirim',
                 style: TextStyle(
                   fontWeight: FontWeight.w500,
-                  fontSize: 14,
+                  fontSize: 16,
                   color: isValid ? Colors.white : Colors.grey,
                 ),
               ),

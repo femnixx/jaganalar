@@ -33,7 +33,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   MaterialPageRoute(builder: (context) => Signin()),
                 );
               },
-              child: Text('Lewati', style: TextStyle(color: Colors.white)),
+              child: Text(
+                'Lewati',
+                style: TextStyle(color: Colors.white, fontSize: 16),
+              ),
             ),
           ],
         ),
@@ -192,7 +195,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   ],
                 ),
           const SizedBox(height: 12),
-          Text(subtitle, textAlign: TextAlign.center),
+          Text(
+            subtitle,
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 16),
+          ),
         ],
       ),
     );

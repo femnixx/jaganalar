@@ -1,4 +1,3 @@
-
 import 'package:dash_chat_2/dash_chat_2.dart';
 import 'package:flutter/material.dart';
 import 'package:jaganalar/Dashboard.dart';
@@ -25,11 +24,12 @@ class _SigninState extends State<Signin> {
   bool _hidePassword = true;
   bool _rememberMe = false;
 
-  // handle remember me 
+  // handle remember me
   Future<void> saveRememberMe(bool value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('rememberMe', value);
   }
+
   Future<bool> loadRememberMe() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool('rememberMe') ?? false;
@@ -41,22 +41,19 @@ class _SigninState extends State<Signin> {
       if (_rememberMe == false) {
         SupabaseService.client.auth.signOut();
       }
-    } 
+    }
   }
-
 
   // sign in
   void signIn() async {
     String password = passwordController.text;
     String email = emailController.text;
-    
+
     // supabase function
     if (password.isNotEmpty && email.isNotEmpty) {
       try {
-        final AuthResponse res = await SupabaseService.client.auth.signInWithPassword(
-          email: email,
-          password: password,
-        );
+        final AuthResponse res = await SupabaseService.client.auth
+            .signInWithPassword(email: email, password: password);
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => Dashboard()),
@@ -68,9 +65,7 @@ class _SigninState extends State<Signin> {
     }
   }
 
-  void forgotPassword() async {
-
-  }
+  void forgotPassword() async {}
 
   @override
   void dispose() {
@@ -81,11 +76,11 @@ class _SigninState extends State<Signin> {
 
   @override
   Widget build(BuildContext context) {
-     // checker
-    bool allValid = 
-    passwordController.text != '' && 
-    emailController.text.isNotEmpty && 
-    passwordController.text.isNotEmpty;
+    // checker
+    bool allValid =
+        passwordController.text != '' &&
+        emailController.text.isNotEmpty &&
+        passwordController.text.isNotEmpty;
 
     return Scaffold(
       body: SafeArea(
@@ -103,17 +98,18 @@ class _SigninState extends State<Signin> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Container(
-                      decoration: BoxDecoration(
-                        color: Color(0xff1C6EA4),
-                      ),
+                      decoration: BoxDecoration(color: Color(0xff1C6EA4)),
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 5.0, vertical: 10),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 5.0,
+                          vertical: 10,
+                        ),
                         child: Text(
                           'Logo',
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 12,
-                            fontWeight: FontWeight.bold
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
@@ -125,7 +121,7 @@ class _SigninState extends State<Signin> {
                         style: TextStyle(
                           color: Colors.black,
                           fontWeight: FontWeight.w700,
-                          fontSize: 20
+                          fontSize: 20,
                         ),
                       ),
                     ),
@@ -144,58 +140,49 @@ class _SigninState extends State<Signin> {
               SizedBox(height: 4),
               Text(
                 'Masuk ke akun anda untuk melanjutkann',
-                style: TextStyle(
-                  fontSize: 14
-                ),
+                style: TextStyle(fontSize: 14),
               ),
-              SizedBox(height: 20,),
+              SizedBox(height: 20),
               TextField(
-                 onChanged:(text) => setState(() {
-                  
-                }),
+                onChanged: (text) => setState(() {}),
                 controller: emailController,
                 decoration: InputDecoration(
                   hintText: 'Email',
                   iconColor: Color(0xff8B8F90),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10)
+                    borderRadius: BorderRadius.circular(10),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(
-                      color: Color(0xff8B8F90)
-                    )
-                  )
+                    borderSide: BorderSide(color: Color(0xff8B8F90)),
+                  ),
                 ),
               ),
-              SizedBox(height: 20,),
+              SizedBox(height: 20),
               TextField(
-                 onChanged:(text) => setState(() {
-                  
-                }),
+                onChanged: (text) => setState(() {}),
                 controller: passwordController,
                 obscureText: _hidePassword,
                 decoration: InputDecoration(
                   suffixIcon: IconButton(
                     onPressed: () {
-                    setState(() {
-                      _hidePassword = !_hidePassword;
-                    });
-                    }, 
+                      setState(() {
+                        _hidePassword = !_hidePassword;
+                      });
+                    },
                     icon: Icon(
-                      _hidePassword ? Icons.visibility_off : Icons.visibility 
-                    )),
+                      _hidePassword ? Icons.visibility_off : Icons.visibility,
+                    ),
+                  ),
                   hintText: 'Kata sandi',
                   iconColor: Color(0xff8B8F90),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10)
+                    borderRadius: BorderRadius.circular(10),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(
-                      color: Color(0xff8B8F90)
-                    )
-                  )
+                    borderSide: BorderSide(color: Color(0xff8B8F90)),
+                  ),
                 ),
               ),
               SizedBox(height: 20),
@@ -208,10 +195,10 @@ class _SigninState extends State<Signin> {
                       Checkbox(
                         value: _rememberMe,
                         checkColor: Colors.white,
-                        activeColor: Color(0xff1C6EA4), 
+                        activeColor: Color(0xff1C6EA4),
                         onChanged: (bool? newValue) {
                           setState(() {
-                          _rememberMe = newValue!;
+                            _rememberMe = newValue!;
                           });
                         },
                       ),
@@ -219,47 +206,52 @@ class _SigninState extends State<Signin> {
                       Text(
                         'Remember me',
                         style: TextStyle(
-                          fontWeight: FontWeight.w700
-                          ,fontSize: 14
+                          fontWeight: FontWeight.w700,
+                          fontSize: 16,
                         ),
-                      )
+                      ),
                     ],
                   ),
                   TextButton(
                     onPressed: () {
                       Navigator.push(
-                        context, 
+                        context,
                         MaterialPageRoute(
-                          builder: (context) => ForgotPassword()
-                        )
+                          builder: (context) => ForgotPassword(),
+                        ),
                       );
                     },
-                    child:
-                    Text('Lupa Password?',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.blueAccent,
+                    child: Text(
+                      'Lupa Password?',
+                      style: TextStyle(fontSize: 16, color: Colors.blueAccent),
                     ),
-                  )
-                  )
+                  ),
                 ],
               ),
               SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () {
-                  allValid ? signIn() : ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('All fields must be completed')
-                    )
-                  );
+                  allValid
+                      ? signIn()
+                      : ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('All fields must be completed'),
+                          ),
+                        );
                 },
                 style: ButtonStyle(
-                  minimumSize: WidgetStateProperty.all(Size(double.infinity, 50)),
-                  shape: WidgetStateProperty.all(RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8)
-                  )),
-                  backgroundColor: WidgetStateProperty.all(allValid ? Color(0xff1C6EA4) : Color(0xffD7D7D7)),
-                  shadowColor: WidgetStateColor.transparent
+                  minimumSize: WidgetStateProperty.all(
+                    Size(double.infinity, 50),
+                  ),
+                  shape: WidgetStateProperty.all(
+                    RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  backgroundColor: WidgetStateProperty.all(
+                    allValid ? Color(0xff1C6EA4) : Color(0xffD7D7D7),
+                  ),
+                  shadowColor: WidgetStateColor.transparent,
                 ),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 12.0),
@@ -268,100 +260,86 @@ class _SigninState extends State<Signin> {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontWeight: FontWeight.w500,
-                      color: (allValid ? Colors.white : Colors.grey[800] )
+                      color: (allValid ? Colors.white : Colors.grey[800]),
+                      fontSize: 16,
                     ),
                   ),
                 ),
               ),
               SizedBox(height: 24),
               Row(
-              children: [
-                Expanded(
-                  child: Divider(
-                    color: Colors.grey,
-                    thickness: 1,
+                children: [
+                  Expanded(child: Divider(color: Colors.grey, thickness: 1)),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: Text(
+                      "Atau masuk dengan",
+                      style: TextStyle(fontSize: 16),
+                    ), // Your text
                   ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                  child: Text("Atau masuk dengan"), // Your text
-                ),
-                Expanded(
-                  child: Divider(
-                    color: Colors.grey,
-                    thickness: 1,
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 24),
-            ElevatedButton(
-              style: ButtonStyle(
-                backgroundColor: WidgetStateProperty.all(Colors.white),
-                shadowColor: WidgetStateProperty.all(Colors.white)
+                  Expanded(child: Divider(color: Colors.grey, thickness: 1)),
+                ],
               ),
-              onPressed: () {
-                // implement later im tired
-
-              },
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    SvgPicture.asset('assets/devicon_google.svg'),
-                    SizedBox(width: 5),
-                    Text(
-                      'Login with Google',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.black
+              SizedBox(height: 24),
+              ElevatedButton(
+                style: ButtonStyle(
+                  backgroundColor: WidgetStateProperty.all(Colors.white),
+                  shadowColor: WidgetStateProperty.all(Colors.white),
+                ),
+                onPressed: () {
+                  // implement later im tired
+                },
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SvgPicture.asset('assets/devicon_google.svg'),
+                      SizedBox(width: 5),
+                      Text(
+                        'Login with Google',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black,
+                        ),
+                        textAlign: TextAlign.center,
                       ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-            SizedBox(height: 45),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'Belum punya akun?',
-                  style: TextStyle(
-                    fontSize: 14
-                  ),
-                  ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => Signup())
-                    );
-                  }, 
-                  child: Text(
-                    'Daftar',
-                    style: TextStyle(
-                      color: Colors.blue,
-                      fontSize: 14,
+              SizedBox(height: 45),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('Belum punya akun?', style: TextStyle(fontSize: 16)),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => Signup()),
+                      );
+                    },
+                    child: Text(
+                      'Daftar',
+                      style: TextStyle(color: Colors.blue, fontSize: 14),
                     ),
-                    )
                   ),
-              ],
-            ),
-            SizedBox(height: 15),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'Dengan mendaftar, anda menyetujui Ketentuan \n Layanan dan Kebijakan Privasi Meksiko',
-                  textAlign: TextAlign.center,
+                ],
+              ),
+              SizedBox(height: 15),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Dengan mendaftar, anda menyetujui Ketentuan \n Layanan dan Kebijakan Privasi Meksiko',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 16),
                   ),
-              ],
-            )
+                ],
+              ),
             ],
           ),
         ),
