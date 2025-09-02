@@ -6,6 +6,7 @@ import 'package:jaganalar/Getstarted.dart';
 import 'package:jaganalar/SignIn.dart';
 import 'package:jaganalar/SignUp.dart';
 import 'package:jaganalar/Splashscreen.dart';
+import 'package:jaganalar/Supabase.dart';
 import 'package:jaganalar/home_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'consts.dart';
@@ -24,8 +25,30 @@ Future<void> main() async {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  Session? _session;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // listen to auth state changes
+    Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+      setState(() {
+        _session = data.session;
+      });
+    });
+
+    // initial session
+    _session = Supabase.instance.client.auth.currentSession;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +56,7 @@ class MyApp extends StatelessWidget {
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Flutter Demo',
+      title: 'JagaNalar',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),

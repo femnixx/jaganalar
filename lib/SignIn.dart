@@ -22,6 +22,20 @@ class _SigninState extends State<Signin> {
   bool _hidePassword = true;
   bool _rememberMe = false;
 
+  Future<void> signInWithGoogle() async {
+    try {
+      await SupabaseService.client.auth.signInWithOAuth(
+        OAuthProvider.google,
+        redirectTo: 'io.supabase.flutter://login-callback',
+        scopes: 'email profile',
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: $e')));
+    }
+  }
+
   Future<void> saveRememberMe(bool value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('rememberMe', value);
@@ -249,7 +263,7 @@ class _SigninState extends State<Signin> {
                             screenHeight * 0.07,
                           ),
                         ),
-                        onPressed: () {},
+                        onPressed: signInWithGoogle,
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
