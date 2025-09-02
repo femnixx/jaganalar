@@ -3,6 +3,7 @@ import 'package:jaganalar/Activity.dart';
 import 'package:jaganalar/History.dart';
 import 'package:jaganalar/EditProfile.dart';
 import 'package:jaganalar/Profile.dart';
+import 'package:jaganalar/SignIn.dart';
 import 'package:jaganalar/UserModel.dart';
 import 'Supabase.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -129,7 +130,24 @@ class _DashboardState extends State<Dashboard> {
           }
 
           if (!snapshot.hasData || snapshot.data == null) {
-            return const Center(child: Text('No user found'));
+            return Center(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('No user found'),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (context) => Signin()),
+                      );
+                    },
+                    child: Text('Return to sign in page'),
+                  ),
+                ],
+              ),
+            );
           }
 
           final user = snapshot.data!;

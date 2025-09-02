@@ -53,7 +53,7 @@ class _SigninState extends State<Signin> {
 
         final existingUser = existingUserResponse as List<dynamic>?;
 
-        if (existingUser == null || existingUser.isEmpty) {
+        if (existingUser!.isEmpty) {
           await SupabaseService.client.from('users').insert({
             'uuid': user.id,
             'username': user.userMetadata?['full_name'] ?? 'Anonymous',
@@ -61,6 +61,10 @@ class _SigninState extends State<Signin> {
             'timestamp': DateTime.now().toIso8601String(),
           });
         }
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => Dashboard()),
+        );
       }
     } catch (e) {
       ScaffoldMessenger.of(
