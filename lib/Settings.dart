@@ -1,37 +1,43 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:jaganalar/SignIn.dart';
+import 'package:jaganalar/Supabase.dart';
 
-class Settings extends StatelessWidget {
+class Settings extends StatefulWidget {
   const Settings({super.key});
+
+  @override
+  State<Settings> createState() => _SettingsState();
+}
+
+class _SettingsState extends State<Settings> {
+  // Switch states
+  bool receiveNotifications = true;
+  bool weeklyMissions = false;
+  bool dailyReminders = true;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text("Pengaturan"),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios),
+          onPressed: () => Navigator.pop(context),
+        ),
+        foregroundColor: Colors.black,
+        elevation: 0,
+      ),
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 11),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Stack(
-                alignment: Alignment.center,
-                children: [
-                  Text(
-                    'Pengaturan',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  Row(children: [Icon(Icons.arrow_back_ios)]),
-                ],
-              ),
-              SizedBox(height: 5),
-              Divider(),
-              SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 5.0),
-                    child: Text('Akun', style: TextStyle(fontSize: 16)),
-                  ),
-                ],
+              // Account Section
+              Text(
+                'Akun',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 6),
               SettingsBuilder(
@@ -40,21 +46,112 @@ class Settings extends StatelessWidget {
                 items3: 'Ganti Password',
               ),
               SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 5.0),
-                    child: Text('Notifikasi', style: TextStyle(fontSize: 16)),
-                  ),
-                ],
+
+              // Notifications Section
+              Text(
+                'Notifikasi',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 6),
               SettingsBuilder(
                 items1: 'Terima Notifikasi',
                 items2: 'Misi Mingguan Terbaru',
                 items3: 'Pengingat Misi Harian',
-                // icon1: Icon(),
+                switch1: receiveNotifications,
+                switch2: weeklyMissions,
+                switch3: dailyReminders,
+                onSwitch1Changed: (val) =>
+                    setState(() => receiveNotifications = val),
+                onSwitch2Changed: (val) => setState(() => weeklyMissions = val),
+                onSwitch3Changed: (val) => setState(() => dailyReminders = val),
+              ),
+              SizedBox(height: 20),
+
+              // Premium Section
+              Text(
+                'Langganan',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 6),
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  color: Colors.blue[50],
+                ),
+                padding: EdgeInsets.all(16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Text content
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Time to Level Up,',
+                          style: TextStyle(
+                            color: Color(0xff0F3D5A),
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          'Let\'s go Premium Now',
+                          style: TextStyle(
+                            color: Color(0xff0F3D5A),
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                    // Button
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color(0xff1C6EA4),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        minimumSize: Size(120, 50),
+                      ),
+                      onPressed: () {},
+                      child: Text(
+                        'Selengkapnya',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: 20),
+
+              // Others Section
+              Text(
+                'Lainnya',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 6),
+              SettingsBuilder(
+                items1: 'Pusat Bantuan',
+                items2: 'Kebijakan Privasi',
+                items3: 'Ketentuan',
+              ),
+              SizedBox(height: 20),
+
+              // Sign Out Button
+              Center(
+                child: ElevatedButton(
+                  onPressed: () async {
+                    await SupabaseService.client.auth.signOut();
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (context) => Signin()),
+                    );
+                  },
+                  child: Text('Sign Out'),
+                ),
               ),
             ],
           ),
@@ -70,12 +167,33 @@ class SettingsBuilder extends StatelessWidget {
     required this.items1,
     required this.items2,
     required this.items3,
-    this.icon1,
-    this.icon2,
-    this.icon3,
+    this.switch1,
+    this.switch2,
+    this.switch3,
+    this.onSwitch1Changed,
+    this.onSwitch2Changed,
+    this.onSwitch3Changed,
   });
+
   final String items1, items2, items3;
-  final IconData? icon1, icon2, icon3;
+  final bool? switch1, switch2, switch3;
+  final ValueChanged<bool>? onSwitch1Changed;
+  final ValueChanged<bool>? onSwitch2Changed;
+  final ValueChanged<bool>? onSwitch3Changed;
+
+  Widget _buildTile(
+    String title,
+    bool? switchValue,
+    ValueChanged<bool>? onChanged,
+  ) {
+    return ListTile(
+      title: Text(title),
+      trailing: switchValue != null
+          ? Switch(value: switchValue, onChanged: onChanged)
+          : Icon(Icons.arrow_forward_ios, size: 18),
+      onTap: () {},
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -83,36 +201,15 @@ class SettingsBuilder extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(10),
-        border: BoxBorder.all(color: Color(0xff8F9799)),
+        border: Border.all(color: Color(0xff8F9799)),
       ),
       child: Column(
         children: [
-          ListTile(
-            title: Text('$items1'),
-            trailing: Icon(icon1 ?? Icons.arrow_forward_ios),
-            onTap: () {
-              // Navigate to a profile page
-            },
-          ),
-          SizedBox(
-            width: double.infinity,
-            child: Divider(indent: 16, endIndent: 16, color: Color(0xff8F9799)),
-          ),
-          ListTile(
-            title: Text('$items2'),
-            trailing: Icon(icon2 ?? Icons.arrow_forward_ios),
-            onTap: () {
-              // Navigate to a notifications settings page
-            },
-          ),
+          _buildTile(items1, switch1, onSwitch1Changed),
           Divider(indent: 16, endIndent: 16, color: Color(0xff8F9799)),
-          ListTile(
-            title: Text('$items3'),
-            trailing: Icon(icon3 ?? Icons.arrow_forward_ios),
-            onTap: () {
-              // Navigate to a security settings page
-            },
-          ),
+          _buildTile(items2, switch2, onSwitch2Changed),
+          Divider(indent: 16, endIndent: 16, color: Color(0xff8F9799)),
+          _buildTile(items3, switch3, onSwitch3Changed),
         ],
       ),
     );
