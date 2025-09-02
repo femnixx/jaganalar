@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:jaganalar/Dashboard.dart';
 import 'package:jaganalar/Supabase.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gemini/flutter_gemini.dart';
@@ -142,6 +143,10 @@ class _QuizPageState extends State<QuizPage> {
               ),
             ],
           ),
+        );
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => Dashboard()),
         );
       }
     });
