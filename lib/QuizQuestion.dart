@@ -1,5 +1,9 @@
 import 'package:jaganalar/Supabase.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_gemini/flutter_gemini.dart';
+import 'consts.dart';
+
+final Gemini gemini = Gemini.init(apiKey: GEMINI_API_KEY);
 
 class QuizQuestion {
   final String id;
@@ -85,6 +89,53 @@ class _QuizPageState extends State<QuizPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Container();
+    final question = widget.questions[currentIndex];
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          "Question ${currentIndex + 1}/${widget.questions.length - 1}",
+        ),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              question.question,
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+Future<String> getQuizFeedback({
+  required String question,
+  required List<String> options,
+  required int correctIndex,
+  required int userAnswerIndex,
+}) async {
+  String prompt =
+      """
+You are a helpful tutor. A student answered a multiple-choice question.
+Question: $question
+Options: ${options.asMap().entries.map((e) => "${e.key + 1}. ${e.value}").join(", ")}
+Correct answer: ${options[correctIndex]}
+Student answered: ${options[userAnswerIndex]}
+
+If the student answered incorrectly, explain why it is wrong and provide the correct answer in a clear, concise, friendly way. 
+If correct, congratulate them.
+""";
+
+  try {
+    final response = await Gemini.instance.prompt(parts: [Part.text(prompt)]);
+    return response?.output ?? "No feedback available.";
+  } catch (e) {
+    print("Geminin error: $e");
+    return "Error generating feedback.";
   }
 }
