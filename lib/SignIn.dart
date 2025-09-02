@@ -1,4 +1,3 @@
-import 'package:dash_chat_2/dash_chat_2.dart';
 import 'package:flutter/material.dart';
 import 'package:jaganalar/Dashboard.dart';
 import 'package:jaganalar/ForgotPassword.dart';
@@ -24,85 +23,96 @@ class _SigninState extends State<Signin> {
 
   Future<void> signInWithGoogle() async {
     try {
-      await SupabaseService.client.auth.signInWithOAuth(
+      // Start OAuth login
+      final res = await SupabaseService.client.auth.signInWithOAuth(
         OAuthProvider.google,
         redirectTo: 'io.supabase.flutter://login-callback',
-        scopes: 'email profile',
       );
 
-      // once user signs in
+      // Wait a moment for session to update
+      await Future.delayed(const Duration(seconds: 2));
+
       final session = SupabaseService.client.auth.currentSession;
-      if (session != null) {
-        final user = session.user;
+      final user = session?.user;
 
-        if (user != null &&
-            (user.userMetadata == null ||
-                user.userMetadata!['full_name'] == null)) {
-          await SupabaseService.client.auth.updateUser(
-            UserAttributes(
-              data: {
-                'full_name': user.userMetadata?['full_name'] ?? 'Anonymous',
-              },
-            ),
-          );
-        }
-        final existingUserResponse = await SupabaseService.client
-            .from('users')
-            .select()
-            .eq('uuid', user.id); // no execute()
+      if (user == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Login gagal, coba lagi.')),
+        );
+        return;
+      }
 
-        final existingUser = existingUserResponse as List<dynamic>?;
+      // Check if user exists in your 'users' table
+      final existingUser = await SupabaseService.client
+          .from('users')
+          .select()
+          .eq('uuid', user.id)
+          .maybeSingle();
 
-        if (existingUser!.isEmpty) {
-          await SupabaseService.client.from('users').insert({
-            'uuid': user.id,
-            'username': user.userMetadata?['full_name'] ?? 'Anonymous',
-            'email': user.email,
-            'timestamp': DateTime.now().toIso8601String(),
-          });
-        }
+      if (existingUser == null) {
+        await SupabaseService.client.from('users').insert({
+          'uuid': user.id,
+          'username': user.userMetadata?['full_name'] ?? 'Anonymous',
+          'email': user.email,
+          'timestamp': DateTime.now().toIso8601String(),
+        });
+      }
+
+      // Fetch the user from DB to make sure Dashboard has data
+      final dbUser = await SupabaseService.client
+          .from('users')
+          .select()
+          .eq('uuid', user.id)
+          .single();
+
+      if (dbUser == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Gagal memuat data pengguna.')),
+        );
+        return;
+      }
+
+      // Navigate to Dashboard after user is ensured in DB
+      if (context.mounted) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => Dashboard()),
+          MaterialPageRoute(builder: (_) => const Dashboard()),
+        );
+      }
+    } catch (e) {
+      print("Error signing in with Google: $e");
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
+    }
+  }
+
+  Future<void> signInWithEmail() async {
+    final email = emailController.text;
+    final password = passwordController.text;
+
+    if (email.isEmpty || password.isEmpty) return;
+
+    try {
+      final res = await SupabaseService.client.auth.signInWithPassword(
+        email: email,
+        password: password,
+      );
+
+      final user = res.user;
+      if (user != null && context.mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const Dashboard()),
         );
       }
     } catch (e) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Error: $e')));
-    }
-  }
-
-  Future<void> saveRememberMe(bool value) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('rememberMe', value);
-  }
-
-  Future<bool> loadRememberMe() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool('rememberMe') ?? false;
-  }
-
-  void signIn() async {
-    String password = passwordController.text;
-    String email = emailController.text;
-
-    if (password.isNotEmpty && email.isNotEmpty) {
-      try {
-        final AuthResponse res = await SupabaseService.client.auth
-            .signInWithPassword(email: email, password: password);
-        if (res != null) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => Dashboard()),
-          );
-        }
-      } catch (error) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: $error')));
-        print(error);
-      }
+      print(e);
     }
   }
 
@@ -137,7 +147,7 @@ class _SigninState extends State<Signin> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       SizedBox(height: screenHeight * 0.05),
-                      // Logo
+                      // Logo and App Name
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -167,29 +177,26 @@ class _SigninState extends State<Signin> {
                       ),
                       SizedBox(height: screenHeight * 0.01),
                       Text(
-                        'Masuk ke akun anda untuk melanjutkann',
+                        'Masuk ke akun anda untuk melanjutkan',
                         style: TextStyle(fontSize: screenWidth * 0.04),
                         textAlign: TextAlign.center,
                       ),
                       SizedBox(height: screenHeight * 0.03),
-
-                      // Email
+                      // Email TextField
                       TextField(
                         controller: emailController,
-                        onChanged: (_) => setState(() {}),
                         decoration: InputDecoration(
                           hintText: 'Email',
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
+                        onChanged: (_) => setState(() {}),
                       ),
                       SizedBox(height: screenHeight * 0.02),
-
-                      // Password
+                      // Password TextField
                       TextField(
                         controller: passwordController,
-                        onChanged: (_) => setState(() {}),
                         obscureText: _hidePassword,
                         decoration: InputDecoration(
                           hintText: 'Kata sandi',
@@ -209,9 +216,9 @@ class _SigninState extends State<Signin> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
+                        onChanged: (_) => setState(() {}),
                       ),
                       SizedBox(height: screenHeight * 0.02),
-
                       // Remember Me & Forgot Password
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -220,13 +227,13 @@ class _SigninState extends State<Signin> {
                             children: [
                               Checkbox(
                                 value: _rememberMe,
-                                onChanged: (value) {
+                                onChanged: (val) {
                                   setState(() {
-                                    _rememberMe = value!;
+                                    _rememberMe = val!;
                                   });
                                 },
                               ),
-                              Text('Remember me'),
+                              const Text('Remember me'),
                             ],
                           ),
                           TextButton(
@@ -238,25 +245,22 @@ class _SigninState extends State<Signin> {
                                 ),
                               );
                             },
-                            child: Text('Lupa Password?'),
+                            child: const Text('Lupa Password?'),
                           ),
                         ],
                       ),
                       SizedBox(height: screenHeight * 0.02),
-
                       // Login Button
                       ElevatedButton(
-                        onPressed: allValid
-                            ? signIn
-                            : null, // disables if not valid
+                        onPressed: allValid ? signInWithEmail : null,
                         style: ElevatedButton.styleFrom(
                           minimumSize: Size(
                             double.infinity,
                             screenHeight * 0.07,
                           ),
                           backgroundColor: allValid
-                              ? Color(0xff1C6EA4)
-                              : Color(0xffD7D7D7),
+                              ? const Color(0xff1C6EA4)
+                              : Colors.grey,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -265,33 +269,27 @@ class _SigninState extends State<Signin> {
                           'Masuk',
                           style: TextStyle(
                             fontSize: screenWidth * 0.045,
-                            color: allValid ? Colors.white : Color(0xff717171),
+                            color: allValid ? Colors.white : Colors.black54,
                           ),
                         ),
                       ),
-                      SizedBox(height: screenHeight * 0.03),
-
-                      // Or Login With
+                      const SizedBox(height: 20),
                       Row(
                         children: [
-                          Expanded(
-                            child: Divider(color: Colors.grey, thickness: 1),
-                          ),
+                          const Expanded(child: Divider()),
                           Padding(
                             padding: EdgeInsets.symmetric(
                               horizontal: screenWidth * 0.02,
                             ),
-                            child: Text("Atau masuk dengan"),
+                            child: const Text('Atau masuk dengan'),
                           ),
-                          Expanded(
-                            child: Divider(color: Colors.grey, thickness: 1),
-                          ),
+                          const Expanded(child: Divider()),
                         ],
                       ),
-                      SizedBox(height: screenHeight * 0.02),
-
-                      // Google Login
+                      const SizedBox(height: 20),
+                      // Google Login Button
                       ElevatedButton(
+                        onPressed: signInWithGoogle,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.white,
                           foregroundColor: Colors.black,
@@ -300,7 +298,6 @@ class _SigninState extends State<Signin> {
                             screenHeight * 0.07,
                           ),
                         ),
-                        onPressed: signInWithGoogle,
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -309,21 +306,16 @@ class _SigninState extends State<Signin> {
                               width: screenWidth * 0.06,
                               height: screenWidth * 0.06,
                             ),
-                            SizedBox(width: screenWidth * 0.02),
-                            Text(
-                              'Login with Google',
-                              style: TextStyle(fontSize: screenWidth * 0.045),
-                            ),
+                            const SizedBox(width: 10),
+                            const Text('Login with Google'),
                           ],
                         ),
                       ),
-                      Spacer(),
-
-                      // Signup
+                      const Spacer(),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text('Belum punya akun?'),
+                          const Text('Belum punya akun?'),
                           TextButton(
                             onPressed: () {
                               Navigator.push(
@@ -331,15 +323,9 @@ class _SigninState extends State<Signin> {
                                 MaterialPageRoute(builder: (_) => Signup()),
                               );
                             },
-                            child: Text('Daftar'),
+                            child: const Text('Daftar'),
                           ),
                         ],
-                      ),
-                      SizedBox(height: screenHeight * 0.02),
-                      Text(
-                        'Dengan mendaftar, anda menyetujui Ketentuan Layanan dan Kebijakan Privasi Meksiko',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: screenWidth * 0.035),
                       ),
                     ],
                   ),
