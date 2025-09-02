@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:jaganalar/Dashboard.dart';
+import 'package:jaganalar/Supabase.dart';
 import 'dart:async';
 import 'Getstarted.dart';
 import 'package:jaganalar/SignIn.dart';
@@ -15,6 +17,7 @@ class Splashscreen extends StatefulWidget {
 class _SplashscreenState extends State<Splashscreen> {
   final PageController _controller = PageController();
   int _currentPage = 0;
+  final user = SupabaseService.client.auth.currentSession;
 
   final List<Widget> _pages = [
     // first page - background
@@ -79,7 +82,10 @@ class _SplashscreenState extends State<Splashscreen> {
         // nav to main page
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => OnboardingScreen()),
+          MaterialPageRoute(
+            builder: (context) =>
+                user != null ? Dashboard() : OnboardingScreen(),
+          ),
         );
       }
     });

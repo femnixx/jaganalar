@@ -54,10 +54,12 @@ class _SigninState extends State<Signin> {
       try {
         final AuthResponse res = await SupabaseService.client.auth
             .signInWithPassword(email: email, password: password);
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => Dashboard()),
-        );
+        if (res != null) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => Dashboard()),
+          );
+        }
       } catch (error) {
         SnackBar(content: Text('Error: $error'));
         print(error);
