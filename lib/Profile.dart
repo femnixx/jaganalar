@@ -53,9 +53,12 @@ class _ProfileState extends State<Profile> {
 
           final user = snapshot.data!;
 
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 11),
-            child: SafeArea(
+          return SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20.0,
+                vertical: 11,
+              ),
               child: Column(
                 children: [
                   Row(
@@ -105,10 +108,80 @@ class _ProfileState extends State<Profile> {
                     ),
                   ),
                   SizedBox(height: 20),
+                  // The problematic Expanded widget has been removed.
                   Stack(
+                    alignment: Alignment.center,
                     children: <Widget>[
-                      Expanded(child: SvgPicture.asset('assets/premium.svg')),
-                      Text('Hi there'),
+                      SvgPicture.asset(
+                        'assets/premium.svg',
+                        width: MediaQuery.of(context).size.width * 1,
+                      ),
+                      Align(
+                        child: Row(
+                          // Use a Row to arrange children horizontally
+                          mainAxisAlignment: MainAxisAlignment
+                              .spaceAround, // Distributes children with space between them
+                          children: [
+                            Column(
+                              // The text is on the left
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Time to Level Up,',
+                                  style: TextStyle(
+                                    color: Color(0xff0F3D5A),
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                Text(
+                                  'Let\'s go Premium Now',
+                                  style: TextStyle(
+                                    color: Color(0xff0F3D5A),
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Color(0xff1C6EA4),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                minimumSize: Size(120, 50),
+                              ),
+                              // The button is on the right
+                              onPressed: () {},
+                              child: Text(
+                                'Selengkapnya',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                        child: Text(
+                          'Ringkasan',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                      // wait until its done
                     ],
                   ),
                 ],
