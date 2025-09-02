@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jaganalar/ForgotPassword.dart';
 import 'Supabase.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -59,8 +60,11 @@ class _Forgotpassword2State extends State<Forgotpassword2> {
                 children: [
                   IconButton(
                     onPressed: () {
-                      Navigator.pop(
+                      Navigator.push(
                         context,
+                        MaterialPageRoute(
+                          builder: (context) => ForgotPassword(),
+                        ),
                       ); // This makes the back button functional
                     },
                     icon: const Icon(Icons.arrow_back_ios),
