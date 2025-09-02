@@ -39,6 +39,23 @@ class Settings extends StatelessWidget {
                 items2: 'Edit Profil',
                 items3: 'Ganti Password',
               ),
+              SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 5.0),
+                    child: Text('Notifikasi', style: TextStyle(fontSize: 16)),
+                  ),
+                ],
+              ),
+              SizedBox(height: 6),
+              SettingsBuilder(
+                items1: 'Terima Notifikasi',
+                items2: 'Misi Mingguan Terbaru',
+                items3: 'Pengingat Misi Harian',
+                // icon1: Icon(),
+              ),
             ],
           ),
         ),
@@ -53,8 +70,12 @@ class SettingsBuilder extends StatelessWidget {
     required this.items1,
     required this.items2,
     required this.items3,
+    this.icon1,
+    this.icon2,
+    this.icon3,
   });
   final String items1, items2, items3;
+  final IconData? icon1, icon2, icon3;
 
   @override
   Widget build(BuildContext context) {
@@ -68,7 +89,7 @@ class SettingsBuilder extends StatelessWidget {
         children: [
           ListTile(
             title: Text('$items1'),
-            trailing: Icon(Icons.arrow_forward_ios),
+            trailing: Icon(icon1 ?? Icons.arrow_forward_ios),
             onTap: () {
               // Navigate to a profile page
             },
@@ -79,7 +100,7 @@ class SettingsBuilder extends StatelessWidget {
           ),
           ListTile(
             title: Text('$items2'),
-            trailing: Icon(Icons.arrow_forward_ios),
+            trailing: Icon(icon2 ?? Icons.arrow_forward_ios),
             onTap: () {
               // Navigate to a notifications settings page
             },
@@ -87,7 +108,7 @@ class SettingsBuilder extends StatelessWidget {
           Divider(indent: 16, endIndent: 16, color: Color(0xff8F9799)),
           ListTile(
             title: Text('$items3'),
-            trailing: Icon(Icons.arrow_forward_ios),
+            trailing: Icon(icon3 ?? Icons.arrow_forward_ios),
             onTap: () {
               // Navigate to a security settings page
             },
