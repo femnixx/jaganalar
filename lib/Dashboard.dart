@@ -245,9 +245,12 @@ class _DashboardState extends State<Dashboard> {
                                       builder: (_) =>
                                           QuizPage(questions: questions),
                                     ),
-                                  );
-                                  await gainXP();
-                                  await updateMissionCount();
+                                  ).then((_) {
+                                    // refresh user data when coming back
+                                    setState(() {
+                                      userFuture = fetchUser(userId);
+                                    });
+                                  });
                                 },
                                 child: Text('Mulai Misi'),
                               ),

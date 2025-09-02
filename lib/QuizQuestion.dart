@@ -4,6 +4,7 @@ import 'package:jaganalar/Supabase.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gemini/flutter_gemini.dart';
 import 'consts.dart';
+import 'UserModel.dart';
 
 final Gemini gemini = Gemini.init(apiKey: GEMINI_API_KEY);
 
@@ -55,6 +56,7 @@ class QuizQuestion {
 Future<List<QuizQuestion>> fetchQuizQuestions() async {
   final response = await SupabaseService.client.from('questions').select();
   print(response);
+
   // new client retuns <list<map<String, dynamic>> directly
   if (response.isEmpty) {
     return [];
@@ -74,17 +76,60 @@ class QuizPage extends StatefulWidget {
   State<QuizPage> createState() => _QuizPageState();
 }
 
+Future<UserModel?> fetchUser() async {
+  final userId = SupabaseService.client.auth.currentUser!.id;
+
+  final response = await SupabaseService.client
+      .from('users')
+      .select('*')
+      .eq('uuid', userId)
+      .single();
+
+  if (response != null) {
+    return UserModel.fromMap(response);
+  }
+  return null;
+}
+
 class _QuizPageState extends State<QuizPage> {
   int currentIndex = 0;
   int? selectedAnswer;
 
-  void nextQuestion() {
+  // points
+  final userId = SupabaseService.client.auth.currentUser!.id;
+  late Future<UserModel?> userFuture;
+
+  // add mission count and XP (trying lol) once point quiz is done
+  Future<void> updateMissionCount() async {
+    final user = await fetchUser();
+    int _addMissions = (user?.missions ?? 0) + 1;
+    int _addXP = (user?.xp ?? 0) + 20;
+
+    final response = await SupabaseService.client
+        .from('users')
+        .update({'missions': _addMissions, 'xp': _addXP})
+        .eq('uuid', userId)
+        .select();
+    if (response != null) {
+      print('Successfully updated missions');
+    }
+    setState(() {
+      userFuture = fetchUser();
+    });
+  }
+
+  Future<void> nextQuestion() async {
     setState(() {
       selectedAnswer = null;
       if (currentIndex < widget.questions.length - 1) {
-        currentIndex++;
+        setState(() {
+          selectedAnswer = null;
+          currentIndex++;
+        });
       } else {
         // Quiz finished
+        updateMissionCount();
+        if (!mounted) return;
         showDialog(
           context: context,
           builder: (_) => AlertDialog(
