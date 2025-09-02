@@ -3,6 +3,7 @@ import 'package:jaganalar/Activity.dart';
 import 'package:jaganalar/History.dart';
 import 'package:jaganalar/EditProfile.dart';
 import 'package:jaganalar/Profile.dart';
+import 'package:jaganalar/QuizQuestion.dart';
 import 'package:jaganalar/SignIn.dart';
 import 'package:jaganalar/UserModel.dart';
 import 'Supabase.dart';
@@ -226,10 +227,29 @@ class _DashboardState extends State<Dashboard> {
                               const SizedBox(height: 16),
                               ElevatedButton(
                                 onPressed: () async {
+                                  final questions = await fetchQuizQuestions();
+
+                                  if (questions.isEmpty) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          "No quiz questions available.",
+                                        ),
+                                      ),
+                                    );
+                                    return;
+                                  }
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          QuizPage(questions: questions),
+                                    ),
+                                  );
                                   await gainXP();
                                   await updateMissionCount();
                                 },
-                                child: const Text('Mulai Misi'),
+                                child: Text('Mulai Misi'),
                               ),
                             ],
                           ),
