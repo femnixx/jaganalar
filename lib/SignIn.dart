@@ -29,6 +29,39 @@ class _SigninState extends State<Signin> {
         redirectTo: 'io.supabase.flutter://login-callback',
         scopes: 'email profile',
       );
+
+      // once user signs in
+      final session = SupabaseService.client.auth.currentSession;
+      if (session != null) {
+        final user = session.user;
+
+        if (user != null &&
+            (user.userMetadata == null ||
+                user.userMetadata!['full_name'] == null)) {
+          await SupabaseService.client.auth.updateUser(
+            UserAttributes(
+              data: {
+                'full_name': user.userMetadata?['full_name'] ?? 'Anonymous',
+              },
+            ),
+          );
+        }
+        final existingUserResponse = await SupabaseService.client
+            .from('users')
+            .select()
+            .eq('uuid', user.id); // no execute()
+
+        final existingUser = existingUserResponse as List<dynamic>?;
+
+        if (existingUser == null || existingUser.isEmpty) {
+          await SupabaseService.client.from('users').insert({
+            'uuid': user.id,
+            'username': user.userMetadata?['full_name'] ?? 'Anonymous',
+            'email': user.email,
+            'timestamp': DateTime.now().toIso8601String(),
+          });
+        }
+      }
     } catch (e) {
       ScaffoldMessenger.of(
         context,
