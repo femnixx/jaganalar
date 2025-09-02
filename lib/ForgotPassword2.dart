@@ -13,6 +13,40 @@ class _Forgotpassword2State extends State<Forgotpassword2> {
   TextEditingController passwordController = TextEditingController();
   TextEditingController confirmPasswordController = TextEditingController();
 
+  // A boolean to toggle password visibility
+  bool _isPasswordVisible = false;
+  bool _isConfirmPasswordVisible = false;
+  bool _isPasswordValid = false;
+
+  @override
+  void initState() {
+    super.initState();
+    passwordController.addListener(_updateButtonState);
+    confirmPasswordController.addListener(_updateButtonState);
+    setState(() {
+      _updateButtonState();
+    });
+  }
+
+  @override
+  void dispose() {
+    passwordController.removeListener(_updateButtonState);
+    confirmPasswordController.removeListener(_updateButtonState);
+    passwordController.dispose();
+    confirmPasswordController.dispose();
+    super.dispose();
+  }
+
+  @override
+  void _updateButtonState() {
+    setState(() {
+      _isPasswordValid =
+          passwordController.text.isNotEmpty &&
+          confirmPasswordController.text.isNotEmpty &&
+          passwordController.text == confirmPasswordController.text;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -24,10 +58,14 @@ class _Forgotpassword2State extends State<Forgotpassword2> {
               Row(
                 children: [
                   IconButton(
-                    onPressed: () {},
-                    icon: Icon(Icons.arrow_back_ios),
+                    onPressed: () {
+                      Navigator.pop(
+                        context,
+                      ); // This makes the back button functional
+                    },
+                    icon: const Icon(Icons.arrow_back_ios),
                   ),
-                  Expanded(
+                  const Expanded(
                     child: Text(
                       'Lupa Password',
                       textAlign: TextAlign.center,
@@ -37,24 +75,70 @@ class _Forgotpassword2State extends State<Forgotpassword2> {
                       ),
                     ),
                   ),
-                  SizedBox(width: 48),
+                  const SizedBox(width: 48),
                 ],
               ),
-              SizedBox(height: 32),
+              const SizedBox(height: 32),
               TextField(
                 controller: passwordController,
+                obscureText: !_isPasswordVisible, // Toggles visibility
                 decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  label: Text('Email'),
-                  // suffixIcon: Icon(Icons.)
+                  border: const OutlineInputBorder(),
+                  labelText: 'Password',
+                  suffixIcon: IconButton(
+                    onPressed: () {
+                      setState(() {
+                        _isPasswordVisible =
+                            !_isPasswordVisible; // Correct state change
+                      });
+                    },
+                    icon: Icon(
+                      _isPasswordVisible
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                    ),
+                  ),
                 ),
               ),
-              SizedBox(height: 12),
+              const SizedBox(height: 12),
               TextField(
                 controller: confirmPasswordController,
+                obscureText: !_isConfirmPasswordVisible, // Toggles visibility
                 decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  label: Text('Konfirmasi Password'),
+                  border: const OutlineInputBorder(),
+                  labelText: 'Konfirmasi Password',
+                  suffixIcon: IconButton(
+                    onPressed: () {
+                      setState(() {
+                        _isConfirmPasswordVisible =
+                            !_isConfirmPasswordVisible; // Correct state change
+                      });
+                    },
+                    icon: Icon(
+                      _isConfirmPasswordVisible
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: 32),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _isPasswordValid
+                      ? Color(0xff1C6EA4)
+                      : Color(0xffD7D7D7),
+                ),
+                onPressed: _isPasswordValid
+                    ? () {
+                        // implement logic here
+                      }
+                    : null,
+                child: Text(
+                  'Ubah Password',
+                  style: TextStyle(
+                    color: _isPasswordValid ? Colors.white : Color(0xff717171),
+                  ),
                 ),
               ),
             ],
