@@ -10,6 +10,6 @@ class Premium extends StatefulWidget {
 class _PremiumState extends State<Premium> {
   @override
   Widget build(BuildContext context) {
-    return Container();
+    return Scaffold(body: Column(children: [Text('Hi there')]));
   }
 }
