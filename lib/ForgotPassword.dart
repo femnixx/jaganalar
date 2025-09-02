@@ -94,7 +94,6 @@ class _ForgotPasswordState extends State<ForgotPassword> {
 
               const SizedBox(height: 32),
 
-              // 🔹 Info text
               const Text(
                 'Masukkan email anda untuk proses verifikasi. Kami akan mengirimkan '
                 'tautan khusus ke email anda untuk mengatur ulang password.',
@@ -104,7 +103,6 @@ class _ForgotPasswordState extends State<ForgotPassword> {
 
               const SizedBox(height: 12),
 
-              // 🔹 Email Input
               TextField(
                 onChanged: (_) => setState(() {}),
                 controller: emailController,
@@ -123,7 +121,6 @@ class _ForgotPasswordState extends State<ForgotPassword> {
 
               const SizedBox(height: 16),
 
-              // 🔹 Resend email timer
               Row(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
@@ -147,7 +144,6 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                 ],
               ),
               SizedBox(height: 20),
-              // 🔹 Kirim button
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: isValid && !_isButtonDisabled
