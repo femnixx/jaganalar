@@ -37,7 +37,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: session != null ? OnboardingScreen() : Splashscreen(),
+      home: session != null ? Splashscreen() : Splashscreen(),
     );
   }
 }
