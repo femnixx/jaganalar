@@ -108,10 +108,7 @@ class _DashboardState extends State<Dashboard> {
 
           final xpStart = xpForPreviousLevels(currentLevel);
           final xpNext = xpStart + xpForNextLevel(currentLevel);
-          final progress = ((currentXP - xpStart) / (xpNext - xpStart)).clamp(
-            0.0,
-            1.0,
-          );
+          final progress = ((currentXP) / (xpNext - xpStart)).clamp(0.0, 1.0);
 
           return SafeArea(
             child: Column(
@@ -134,7 +131,7 @@ class _DashboardState extends State<Dashboard> {
   Widget _buildHeader(BuildContext context, String name, int level, int xp) {
     return Container(
       width: double.infinity,
-      height: MediaQuery.of(context).size.height * 0.20,
+      height: MediaQuery.of(context).size.height * 0.15,
       decoration: const BoxDecoration(color: Color(0xff1C6EA4)),
       child: Stack(
         children: [
@@ -190,104 +187,91 @@ class _DashboardState extends State<Dashboard> {
 
   /// Overlapping XP Progress Card
   Widget _buildXPCard(double progress, int level, int xp, int xpNext) {
-    return Transform.translate(
-      offset: const Offset(0, -40), // moves upward to overlap
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(8),
-            boxShadow: [
-              BoxShadow(color: Colors.grey.withOpacity(0.3), blurRadius: 5),
-            ],
-          ),
-          child: Column(
-            children: [
-              Align(
-                alignment: Alignment.topLeft,
-                child: const Text(
-                  'You\'re off to a great start!',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
+    return Column(
+      children: [
+        Transform.translate(
+          offset: const Offset(0, -40), // moves upward to overlap
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 25),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                boxShadow: [
+                  BoxShadow(color: Colors.grey.withOpacity(0.3), blurRadius: 5),
+                ],
               ),
-              SizedBox(height: 10),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              child: Column(
                 children: [
-                  Text(
-                    'Level $level',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
+                  Align(
+                    alignment: Alignment.topLeft,
+                    child: const Text(
+                      'You\'re off to a great start!',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Level $level',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      Row(
+                        children: [
+                          Text(
+                            '$xp XP/',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            '${xpForNextLevel(level)}XP Menuju Level ${level + 1} ',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Color(0xff969696),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                   Row(
                     children: [
-                      Text(
-                        '$xp XP /',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                      Expanded(
+                        child: Stack(
+                          alignment: Alignment.centerLeft,
+                          children: [
+                            LinearProgressIndicator(
+                              value: progress,
+                              backgroundColor: Colors.blueGrey[200],
+                              color: Colors.black,
+                              minHeight: 8,
+                            ),
+                          ],
                         ),
                       ),
-                      Text(
-                        '${xpNext}',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Color(0xff969696),
-                        ),
+                      Positioned(
+                        left: 20,
+                        child: SvgPicture.asset('assets/Levelup.svg'),
                       ),
                     ],
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
-              LinearProgressIndicator(
-                value: progress,
-                backgroundColor: Colors.blueGrey[200],
-                color: Colors.black,
-                minHeight: 8,
-              ),
-            ],
+            ),
           ),
         ),
-      ),
-    );
-  }
-
-  /// Weekly Mission Section
-  Widget _buildWeeklyMission(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.all(20),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.black, width: 2),
-      ),
-      child: Column(
-        children: [
-          const Text('Misi Mingguan'),
-          const SizedBox(height: 16),
-          const Text('Pendeteksi misinformasi digital'),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () async {
-              final questions = await fetchQuizQuestions();
-              if (questions.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("No quiz questions available.")),
-                );
-                return;
-              }
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => QuizPage(questions: questions),
-                ),
-              ).then((_) => setState(() => userFuture = fetchUser(userId)));
-            },
-            child: const Text('Mulai Misi'),
-          ),
-        ],
-      ),
+      ],
     );
   }
 
@@ -337,6 +321,77 @@ class _DashboardState extends State<Dashboard> {
           Icons.notifications,
           color: Color(0xff1C6EA4),
           size: 20,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWeeklyMission(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(20),
+      child: Container(
+        height: 200, // fixed height
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(15), // Adds rounded corners
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 5),
+            ),
+          ],
+        ),
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: ClipRRect(
+                // Clips the SVG to match the container's border radius
+                borderRadius: BorderRadius.circular(15),
+                child: SvgPicture.asset(
+                  'assets/frame1(1).svg',
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+            Positioned(
+              top: 16,
+              left: 16,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Misi Mingguan',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text('Pendeteksi misinformasi digital'),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () async {
+                      final questions = await fetchQuizQuestions();
+                      if (questions.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("No quiz questions available."),
+                          ),
+                        );
+                        return;
+                      }
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => QuizPage(questions: questions),
+                        ),
+                      ).then(
+                        (_) => setState(() => userFuture = fetchUser(userId)),
+                      );
+                    },
+                    child: const Text('Mulai Misi'),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
