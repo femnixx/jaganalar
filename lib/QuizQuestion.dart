@@ -1,9 +1,9 @@
+// QuizQuestion.dart
 import 'dart:convert';
-
-import 'package:jaganalar/Dashboard.dart';
-import 'package:jaganalar/Supabase.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gemini/flutter_gemini.dart';
+import 'package:jaganalar/Dashboard.dart';
+import 'package:jaganalar/Supabase.dart';
 import 'consts.dart';
 import 'UserModel.dart';
 
@@ -23,17 +23,12 @@ class QuizQuestion {
   });
 
   factory QuizQuestion.fromMap(Map<String, dynamic> map) {
-    // Correctly handle the 'options' field
     List<String> optionsList;
-
     if (map['options'] is String) {
-      // Decode the JSON string into a List<dynamic> and then convert
       optionsList = List<String>.from(jsonDecode(map['options']));
     } else if (map['options'] is List) {
-      // If it's already a List, use it directly
       optionsList = List<String>.from(map['options']);
     } else {
-      // Handle unexpected data types by returning an empty list
       optionsList = [];
     }
     return QuizQuestion(
@@ -56,13 +51,9 @@ class QuizQuestion {
 
 Future<List<QuizQuestion>> fetchQuizQuestions() async {
   final response = await SupabaseService.client.from('questions').select();
-  print(response);
-
-  // new client retuns <list<map<String, dynamic>> directly
   if (response.isEmpty) {
     return [];
   }
-
   final data = response as List<dynamic>;
   return data
       .map((q) => QuizQuestion.fromMap(q as Map<String, dynamic>))
@@ -79,79 +70,80 @@ class QuizPage extends StatefulWidget {
 
 Future<UserModel?> fetchUser() async {
   final userId = SupabaseService.client.auth.currentUser!.id;
-
   final response = await SupabaseService.client
       .from('users')
       .select('*')
       .eq('uuid', userId)
       .single();
-
-  if (response != null) {
-    return UserModel.fromMap(response);
-  }
-  return null;
+  return response != null ? UserModel.fromMap(response) : null;
 }
+
+int xpForNextLevel(int level) => 100 + (level - 1) * 20;
 
 class _QuizPageState extends State<QuizPage> {
   int currentIndex = 0;
   int? selectedAnswer;
+  final String userId = SupabaseService.client.auth.currentUser!.id;
 
-  // points
-  final userId = SupabaseService.client.auth.currentUser!.id;
-  late Future<UserModel?> userFuture;
-
-  // add mission count and XP (trying lol) once point quiz is done
-  Future<void> updateMissionCount() async {
+  Future<void> updateMissionCountAndLevelUp() async {
     final user = await fetchUser();
-    int _addMissions = (user?.missions ?? 0) + 1;
-    int _addXP = (user?.xp ?? 0) + 20;
+    if (user == null) return;
 
-    final response = await SupabaseService.client
-        .from('users')
-        .update({'missions': _addMissions, 'xp': _addXP})
-        .eq('uuid', userId)
-        .select();
-    if (response != null) {
-      print('Successfully updated missions');
+    // The user completed one mission
+    int newMissions = (user.missions ?? 0) + 1;
+    // The user gains 20 XP for completing the mission
+    int xpGain = 20;
+
+    // Calculate the new total XP
+    int totalXP = (user.xp ?? 0) + xpGain;
+    int newLevel = user.level ?? 1;
+
+    // Loop to handle potential multiple level-ups
+    while (totalXP >= xpForNextLevel(newLevel)) {
+      totalXP -= xpForNextLevel(newLevel);
+      newLevel++;
     }
-    setState(() {
-      userFuture = fetchUser();
-    });
+
+    // Update the database with the new values
+    await SupabaseService.client
+        .from('users')
+        .update({
+          'missions': newMissions,
+          'xp': totalXP, // Use the new, rollover XP
+          'level': newLevel, // Use the new level
+        })
+        .eq('uuid', userId);
   }
 
   Future<void> nextQuestion() async {
     setState(() {
       selectedAnswer = null;
       if (currentIndex < widget.questions.length - 1) {
-        setState(() {
-          selectedAnswer = null;
-          currentIndex++;
-        });
+        currentIndex++;
       } else {
         // Quiz finished
+        updateMissionCountAndLevelUp();
         if (!mounted) return;
         showDialog(
           context: context,
           builder: (_) => AlertDialog(
-            title: Text('Quiz completed'),
-            content: Text('good job'),
+            title: const Text('Quiz Completed!'),
+            content: const Text(
+              'You did a great job! You gained XP and a new mission count.',
+            ),
             actions: [
               TextButton(
-                onPressed: () => Navigator.pop(context, {
-                  'xp_gained': 20,
-                  'missions_gained': 1,
-                }),
-                child: Text('OK'),
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const Dashboard()),
+                  );
+                },
+                child: const Text('OK'),
               ),
             ],
           ),
-        );
-        setState(() {
-          fetchUser();
-        });
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => Dashboard()),
         );
       }
     });
@@ -172,9 +164,9 @@ class _QuizPageState extends State<QuizPage> {
           children: [
             Text(
               question.question,
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
-            SizedBox(height: 24),
+            const SizedBox(height: 24),
             ...List.generate(question.options.length, (index) {
               return Padding(
                 padding: const EdgeInsets.symmetric(vertical: 4.0),
@@ -183,28 +175,24 @@ class _QuizPageState extends State<QuizPage> {
                     setState(() {
                       selectedAnswer = index;
                     });
-
-                    // Optional: generate feedback using Gemini
                     final feedback = await getQuizFeedback(
                       question: question.question,
                       options: question.options,
                       correctIndex: question.correctIndex,
                       userAnswerIndex: index,
                     );
-
-                    // Show feedback in dialog
                     showDialog(
                       context: context,
                       builder: (_) => AlertDialog(
-                        title: Text("Feedback"),
+                        title: const Text("Feedback"),
                         content: Text(feedback),
                         actions: [
                           TextButton(
                             onPressed: () {
                               Navigator.pop(context);
-                              nextQuestion(); // go to next question
+                              nextQuestion();
                             },
-                            child: Text("Next"),
+                            child: const Text("Next"),
                           ),
                         ],
                       ),
@@ -239,8 +227,8 @@ Options: ${options.asMap().entries.map((e) => "${e.key + 1}. ${e.value}").join("
 Correct answer: ${options[correctIndex]}
 Student answered: ${options[userAnswerIndex]}
 
-If the student answered incorrectly, explain why it is wrong and provide the correct answer in a clear, concise, friendly way. 
-If correct, congratulate them and explain shortly why the other answers are wrong. 
+If the student answered incorrectly, explain why it is wrong and provide the correct answer in a clear, concise, friendly way.
+If correct, congratulate them and explain shortly why the other answers are wrong.
 """;
 
     try {
