@@ -1,4 +1,8 @@
+import 'dart:io';
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:jaganalar/Settings.dart';
 import 'package:jaganalar/UserModel.dart';
@@ -7,6 +11,8 @@ import 'package:supabase/supabase.dart';
 import 'History.dart';
 import 'Dashboard.dart';
 import 'Activity.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path/path.dart' as p;
 
 class Profile extends StatefulWidget {
   const Profile({super.key});
@@ -16,6 +22,39 @@ class Profile extends StatefulWidget {
 }
 
 class _ProfileState extends State<Profile> {
+  Future<void> uploadProfilePicture(String userId) async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile == null) return;
+
+    final imageFile = File(pickedFile.path);
+    final fileExt = p.extension(imageFile.path);
+    final filePath = '$userId$fileExt';
+
+    // upload to supabasestorage
+    final uploadResponse = await SupabaseService.client.storage
+        .from('avatars')
+        .upload(filePath, imageFile);
+
+    if (uploadResponse.isEmpty) {
+      print('Upload error');
+      return;
+    }
+
+    // get public URL
+    final imageUrl = SupabaseService.client.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+    await SupabaseService.client
+        .from('users')
+        .update({'avatar_url': imageUrl})
+        .eq('uuid', userId);
+
+    setState(() {});
+  }
+
   int _currentIndex = 3;
   final String userId = SupabaseService.client.auth.currentUser!.id;
   late Future<UserModel?> userFuture;
@@ -120,7 +159,24 @@ class _ProfileState extends State<Profile> {
                               width: 1.5,
                             ),
                           ),
-                          child: CircleAvatar(radius: 52.5),
+                          child: GestureDetector(
+                            child: CircleAvatar(
+                              radius: 52.5,
+                              backgroundImage: user.avatarUrl != null
+                                  ? NetworkImage(user.avatarUrl!)
+                                  : null,
+                              child: user.avatarUrl == null
+                                  ? Icon(
+                                      Icons.person,
+                                      size: 60,
+                                      color: Colors.white,
+                                    )
+                                  : null,
+                            ),
+                            onTap: () async {
+                              await uploadProfilePicture(userId);
+                            },
+                          ),
                         ),
                       ],
                     ),
