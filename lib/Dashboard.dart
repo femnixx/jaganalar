@@ -45,16 +45,14 @@ class _DashboardState extends State<Dashboard> {
 
     int totalXP = user.xp ?? 0;
     int newLevel = 1;
-    int requiredXPForNextLevel = xpForNextLevel(newLevel);
 
-    // Loop to determine the correct level based on total XP
-    while (totalXP >= requiredXPForNextLevel) {
-      totalXP -= requiredXPForNextLevel;
+    while (totalXP >= xpForNextLevel(newLevel)) {
       newLevel++;
-      requiredXPForNextLevel = xpForNextLevel(newLevel);
     }
+    newLevel--; // Because loop runs one extra time
 
-    // Only update if the level has changed
+    if (newLevel < 1) newLevel = 1; // Safety check
+
     if (newLevel != user.level) {
       await SupabaseService.client
           .from('users')
