@@ -1,4 +1,3 @@
-// QuizQuestion.dart
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_gemini/flutter_gemini.dart';
@@ -9,65 +8,48 @@ import 'UserModel.dart';
 
 final Gemini gemini = Gemini.init(apiKey: GEMINI_API_KEY);
 
-class QuizQuestion {
-  final String id;
-  final String question;
-  final List<String> options;
-  final int correctIndex;
+/// Model for quiz sets
+// lib/QuizSet.dart (or wherever you define your models)
+class QuizSet {
+  final int id;
+  final String title;
+  final List<dynamic>
+  questions; // Or a more specific type if you have a Question model
+  final List<dynamic> answers;
+  final List<dynamic> correctIndex;
 
-  QuizQuestion({
+  QuizSet({
     required this.id,
-    required this.question,
-    required this.options,
+    required this.title,
+    required this.questions,
+    required this.answers,
     required this.correctIndex,
   });
 
-  factory QuizQuestion.fromMap(Map<String, dynamic> map) {
-    List<String> optionsList;
-    if (map['options'] is String) {
-      optionsList = List<String>.from(jsonDecode(map['options']));
-    } else if (map['options'] is List) {
-      optionsList = List<String>.from(map['options']);
-    } else {
-      optionsList = [];
-    }
-    return QuizQuestion(
-      id: map['id'].toString(),
-      question: map['question'],
-      options: optionsList,
-      correctIndex: map['correctIndex'],
+  // ✅ This is the factory constructor that fixes your error
+  factory QuizSet.fromMap(Map<String, dynamic> data) {
+    return QuizSet(
+      id: data['id'] as int,
+      title: data['title'] as String,
+      questions: data['questions'] as List<dynamic>,
+      answers: data['answers'] as List<dynamic>,
+      correctIndex: data['correctIndex'] as List<dynamic>,
     );
   }
+}
 
-  Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'question': question,
-      'options': options,
-      'correctIndex': correctIndex,
-    };
+Future<List<QuizSet>> fetchQuizSets(missionId) async {
+  final response = await SupabaseService.client.from('questions').select('*');
+
+  if (response is List) {
+    return response
+        .map((e) => QuizSet.fromMap(e as Map<String, dynamic>))
+        .toList();
   }
+  return [];
 }
 
-Future<List<QuizQuestion>> fetchQuizQuestions() async {
-  final response = await SupabaseService.client.from('questions').select();
-  if (response.isEmpty) {
-    return [];
-  }
-  final data = response as List<dynamic>;
-  return data
-      .map((q) => QuizQuestion.fromMap(q as Map<String, dynamic>))
-      .toList();
-}
-
-class QuizPage extends StatefulWidget {
-  final List<QuizQuestion> questions;
-  const QuizPage({super.key, required this.questions});
-
-  @override
-  State<QuizPage> createState() => _QuizPageState();
-}
-
+/// Fetch user info for XP updates
 Future<UserModel?> fetchUser() async {
   final userId = SupabaseService.client.auth.currentUser!.id;
   final response = await SupabaseService.client
@@ -80,64 +62,58 @@ Future<UserModel?> fetchUser() async {
 
 int xpForNextLevel(int level) => 100 + (level - 1) * 20;
 
+/// Quiz Page
+class QuizPage extends StatefulWidget {
+  final QuizSet quizSet;
+  const QuizPage({super.key, required this.quizSet});
+
+  @override
+  State<QuizPage> createState() => _QuizPageState();
+}
+
 class _QuizPageState extends State<QuizPage> {
   int currentIndex = 0;
   int? selectedAnswer;
-  final String userId = SupabaseService.client.auth.currentUser!.id;
 
   Future<void> updateMissionCountAndLevelUp() async {
     final user = await fetchUser();
     if (user == null) return;
 
-    // The user completed one mission
     int newMissions = (user.missions ?? 0) + 1;
-    // The user gains 20 XP for completing the mission
     int xpGain = 20;
-
-    // Calculate the new total XP
     int totalXP = (user.xp ?? 0) + xpGain;
     int newLevel = user.level ?? 1;
 
-    // Loop to handle potential multiple level-ups
     while (totalXP >= xpForNextLevel(newLevel)) {
       totalXP -= xpForNextLevel(newLevel);
       newLevel++;
     }
 
-    // Update the database with the new values
     await SupabaseService.client
         .from('users')
-        .update({
-          'missions': newMissions,
-          'xp': totalXP, // Use the new, rollover XP
-          'level': newLevel, // Use the new level
-        })
-        .eq('uuid', userId);
+        .update({'missions': newMissions, 'xp': totalXP, 'level': newLevel})
+        .eq('uuid', SupabaseService.client.auth.currentUser!.id);
   }
 
   Future<void> nextQuestion() async {
     setState(() {
       selectedAnswer = null;
-      if (currentIndex < widget.questions.length - 1) {
+      if (currentIndex < widget.quizSet.questions.length - 1) {
         currentIndex++;
       } else {
-        // Quiz finished
         updateMissionCountAndLevelUp();
-        if (!mounted) return;
         showDialog(
           context: context,
           builder: (_) => AlertDialog(
             title: const Text('Quiz Completed!'),
-            content: const Text(
-              'You did a great job! You gained XP and a new mission count.',
-            ),
+            content: const Text('You gained XP and completed a mission!'),
             actions: [
               TextButton(
                 onPressed: () {
                   Navigator.pop(context);
                   Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(builder: (context) => const Dashboard()),
+                    MaterialPageRoute(builder: (_) => const Dashboard()),
                   );
                 },
                 child: const Text('OK'),
@@ -149,13 +125,61 @@ class _QuizPageState extends State<QuizPage> {
     });
   }
 
+  Future<String> getQuizFeedback({
+    required String question,
+    required List<String> options,
+    required int correctIndex,
+    required int userAnswerIndex,
+  }) async {
+    try {
+      await Future.delayed(const Duration(seconds: 3));
+      // Sanitize input to avoid Gemini errors
+      String safeQuestion = question.replaceAll(RegExp(r'[^\w\s\+\-\*/]'), '');
+      List<String> safeOptions = options
+          .map((e) => e.toString().replaceAll(RegExp(r'[^\w\s\+\-\*/]'), ''))
+          .toList();
+
+      String formattedOptions = safeOptions
+          .asMap()
+          .entries
+          .map((e) => "${e.key + 1}. ${e.value}")
+          .join("\n");
+
+      String prompt =
+          """
+Question: $safeQuestion
+Options:
+$formattedOptions
+
+Correct answer: ${safeOptions[correctIndex]}
+Student answer: ${safeOptions[userAnswerIndex]}
+
+If wrong: explain shortly why and give the correct answer.
+If correct: explain briefly why others are wrong.
+""";
+
+      // Debug log to check what we send to Gemini
+      print("Gemini Prompt:\n$prompt");
+
+      final response = await Gemini.instance.prompt(parts: [Part.text(prompt)]);
+      return response?.output ?? "No feedback available.";
+    } catch (e) {
+      print("Gemini Error: $e");
+      return "Error getting feedback: $e";
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final question = widget.questions[currentIndex];
+    final question = widget.quizSet.questions[currentIndex];
+    final options = List<String>.from(widget.quizSet.answers[currentIndex]);
+    final correctIndex = widget.quizSet.correctIndex[currentIndex];
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("Question ${currentIndex + 1}/${widget.questions.length}"),
+        title: Text(
+          "Question ${currentIndex + 1}/${widget.quizSet.questions.length}",
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
@@ -163,25 +187,33 @@ class _QuizPageState extends State<QuizPage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              question.question,
+              question,
               style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 24),
-            ...List.generate(question.options.length, (index) {
+            const SizedBox(height: 20),
+
+            // Generate answer buttons
+            ...List.generate(options.length, (index) {
               return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4.0),
+                padding: const EdgeInsets.symmetric(vertical: 4),
                 child: ElevatedButton(
                   onPressed: () async {
                     setState(() {
                       selectedAnswer = index;
                     });
-                    final feedback = await getQuizFeedback(
-                      question: question.question,
-                      options: question.options,
-                      correctIndex: question.correctIndex,
+
+                    // Try Gemini feedback, fallback to basic message if fails
+                    String feedback = await getQuizFeedback(
+                      question: question,
+                      options: options,
+                      correctIndex: correctIndex,
                       userAnswerIndex: index,
                     );
-                    showDialog(
+
+                    if (!context.mounted) return;
+
+                    // Show feedback dialog
+                    await showDialog(
                       context: context,
                       builder: (_) => AlertDialog(
                         title: const Text("Feedback"),
@@ -190,7 +222,7 @@ class _QuizPageState extends State<QuizPage> {
                           TextButton(
                             onPressed: () {
                               Navigator.pop(context);
-                              nextQuestion();
+                              nextQuestion(); // Always moves forward
                             },
                             child: const Text("Next"),
                           ),
@@ -203,7 +235,7 @@ class _QuizPageState extends State<QuizPage> {
                         ? Colors.orange
                         : Colors.blue,
                   ),
-                  child: Text(question.options[index]),
+                  child: Text(options[index]),
                 ),
               );
             }),
@@ -211,32 +243,5 @@ class _QuizPageState extends State<QuizPage> {
         ),
       ),
     );
-  }
-
-  Future<String> getQuizFeedback({
-    required String question,
-    required List<String> options,
-    required int correctIndex,
-    required int userAnswerIndex,
-  }) async {
-    String prompt =
-        """
-You are a helpful tutor. A student answered a multiple-choice question.
-Question: $question
-Options: ${options.asMap().entries.map((e) => "${e.key + 1}. ${e.value}").join(", ")}
-Correct answer: ${options[correctIndex]}
-Student answered: ${options[userAnswerIndex]}
-
-If the student answered incorrectly, explain why it is wrong and provide the correct answer in a clear, concise, friendly way.
-If correct, congratulate them and explain shortly why the other answers are wrong.
-""";
-
-    try {
-      final response = await Gemini.instance.prompt(parts: [Part.text(prompt)]);
-      return response?.output ?? "No feedback available.";
-    } catch (e) {
-      print("Gemini error: $e");
-      return "Error generating feedback.";
-    }
   }
 }

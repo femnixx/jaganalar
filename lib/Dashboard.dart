@@ -540,7 +540,7 @@ class _DashboardState extends State<Dashboard> {
                             ),
                           ),
                           onPressed: () async {
-                            final questions = await fetchQuizQuestions();
+                            final questions = await fetchQuizSets(context);
                             if (questions.isEmpty) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
@@ -551,9 +551,7 @@ class _DashboardState extends State<Dashboard> {
                             }
                             Navigator.push(
                               context,
-                              MaterialPageRoute(
-                                builder: (_) => QuizPage(questions: questions),
-                              ),
+                              MaterialPageRoute(builder: (_) => Activity()),
                             ).then(
                               (_) => setState(
                                 () => userFuture = fetchUser(userId),
@@ -677,7 +675,7 @@ class _DashboardState extends State<Dashboard> {
                             ),
                           ),
                           onPressed: () async {
-                            final questions = await fetchQuizQuestions();
+                            final questions = await fetchQuizSets(4);
                             if (questions.isEmpty) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
@@ -688,9 +686,7 @@ class _DashboardState extends State<Dashboard> {
                             }
                             Navigator.push(
                               context,
-                              MaterialPageRoute(
-                                builder: (_) => QuizPage(questions: questions),
-                              ),
+                              MaterialPageRoute(builder: (_) => Activity()),
                             ).then(
                               (_) => setState(
                                 () => userFuture = fetchUser(userId),
