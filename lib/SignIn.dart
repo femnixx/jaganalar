@@ -24,16 +24,18 @@ class _SigninState extends State<Signin> {
   Future<void> signInWithGoogle() async {
     try {
       // Start OAuth login
-      final res = await SupabaseService.client.auth.signInWithOAuth(
+      await SupabaseService.client.auth.signInWithOAuth(
         OAuthProvider.google,
         redirectTo: 'io.supabase.flutter://login-callback',
       );
 
-      // Wait a moment for session to update
+      // Listen for session change once
       SupabaseService.client.auth.onAuthStateChange.listen((data) async {
         final session = data.session;
         if (session != null) {
           final user = session.user;
+
+          // Check if user already exists in your "users" table
           final existingUser = await SupabaseService.client
               .from('users')
               .select()
@@ -41,6 +43,7 @@ class _SigninState extends State<Signin> {
               .maybeSingle();
 
           if (existingUser == null) {
+            // Insert only if it doesn't exist
             await SupabaseService.client.from('users').insert({
               'uuid': user.id,
               'username': user.userMetadata?['full_name'] ?? 'Anonymous',
@@ -48,6 +51,8 @@ class _SigninState extends State<Signin> {
               'timestamp': DateTime.now().toIso8601String(),
             });
           }
+
+          // Navigate after everything is done
           if (context.mounted) {
             Navigator.pushReplacement(
               context,
@@ -80,7 +85,7 @@ class _SigninState extends State<Signin> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (_) => const Dashboard()),
-        );
+        ).then((_) {});
       }
     } catch (e) {
       ScaffoldMessenger.of(
