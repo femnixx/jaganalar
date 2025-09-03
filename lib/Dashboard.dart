@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:jaganalar/Activity.dart';
 import 'package:jaganalar/History.dart';
@@ -112,17 +113,21 @@ class _DashboardState extends State<Dashboard> {
             final progress = ((currentXP) / (xpNext - xpStart)).clamp(0.0, 1.0);
 
             return SafeArea(
-              child: Column(
-                children: [
-                  _buildHeader(context, shortenName, currentLevel, currentXP),
-                  SizedBox(height: 20),
-                  _buildXPCard(progress, currentLevel, currentXP, xpNext),
-                  _buildWeeklyMission(context),
-                  SizedBox(height: 20),
-                  _buildRankingCard(context),
-                  SizedBox(height: 20),
-                  _buildStats(user),
-                ],
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    _buildHeader(context, shortenName, currentLevel, currentXP),
+                    SizedBox(height: 20),
+                    _buildXPCard(progress, currentLevel, currentXP, xpNext),
+                    _buildWeeklyMission(context),
+                    SizedBox(height: 20),
+                    _buildRankingCard(context),
+                    SizedBox(height: 20),
+                    _buildStats(user),
+                    // Add this line to create space at the bottom
+                    SizedBox(height: 40),
+                  ],
+                ),
               ),
             );
           },
@@ -282,29 +287,87 @@ class _DashboardState extends State<Dashboard> {
 
   /// Stats Section
   Widget _buildStats(UserModel user) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          _buildStatBox("Missions", user.missions ?? 0),
-          _buildStatBox("Medals", user.medals ?? 0),
-          _buildStatBox("Streak", user.streak ?? 0),
-        ],
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: EdgeInsets.fromLTRB(50, 0, 50, 40),
+      child: Center(
+        child: Row(
+          children: [
+            _buildStatBox(
+              "Streak",
+              user.streak ?? 0,
+              'assets/framestreak.svg',
+              'assets/streak2.svg',
+            ),
+            const SizedBox(width: 15),
+            _buildStatBox(
+              "Missions",
+              12,
+              'assets/framemissions.svg',
+              'assets/plolygon.svg',
+            ),
+            const SizedBox(width: 15),
+            _buildStatBox(
+              "Medals",
+              5,
+              'assets/framestreak.svg',
+              'assets/medals2.svg',
+            ),
+          ],
+        ),
       ),
     );
   }
 
   /// Reusable Stat Box
-  Widget _buildStatBox(String label, int value) {
+  Widget _buildStatBox(
+    String label,
+    int value,
+    String backgroundSvg,
+    String iconSvg,
+  ) {
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(border: Border.all(color: Colors.black)),
-      child: Column(
+      height: 120,
+      width: 120,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Stack(
         children: [
-          const Icon(Icons.sports_golf_rounded),
-          Text('$value'),
-          Text(label),
+          Positioned.fill(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: SvgPicture.asset(backgroundSvg, fit: BoxFit.cover),
+            ),
+          ),
+          Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SvgPicture.asset(iconSvg),
+                const SizedBox(height: 8),
+                Text(
+                  '$value',
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                Text(
+                  label,
+                  style: const TextStyle(fontSize: 14, color: Colors.white),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -476,7 +539,7 @@ class _DashboardState extends State<Dashboard> {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(15),
                 child: SvgPicture.asset(
-                  'assets/frame1(1).svg',
+                  'assets/frame(2).svg',
                   fit: BoxFit.cover,
                 ),
               ),
@@ -519,6 +582,7 @@ class _DashboardState extends State<Dashboard> {
                         ),
                       ),
                     ),
+
                     const SizedBox(height: 10),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.center,

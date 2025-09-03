@@ -6,7 +6,6 @@ import 'Supabase.dart';
 import 'package:supabase/supabase.dart';
 import 'History.dart';
 import 'Dashboard.dart';
-import 'EditProfile.dart';
 import 'Activity.dart';
 
 class Profile extends StatefulWidget {
@@ -72,7 +71,7 @@ class _ProfileState extends State<Profile> {
 
             int xpStart = xpForPreviousLevels(currentLevel);
             int xpNext = xpStart + xpForNextLevel(currentLevel);
-            double progress = (currentXP - xpStart) / (xpNext - xpStart);
+            double progress = (currentXP) / (xpNext - xpStart);
             progress = progress.clamp(0.0, 1.0);
 
             return SafeArea(
@@ -88,7 +87,6 @@ class _ProfileState extends State<Profile> {
                       children: [
                         ElevatedButton(
                           onPressed: () {
-                            // navigate to settings
                             Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -101,7 +99,7 @@ class _ProfileState extends State<Profile> {
                             padding: EdgeInsets.zero,
                             backgroundColor: Color(0xffB9D2E3),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadiusGeometry.circular(8),
+                              borderRadius: BorderRadius.circular(8),
                             ),
                             fixedSize: Size(38, 38),
                           ),
@@ -143,64 +141,136 @@ class _ProfileState extends State<Profile> {
                       ),
                     ),
                     SizedBox(height: 20),
-                    // The problematic Expanded widget has been removed.
                     Stack(
                       alignment: Alignment.center,
                       children: <Widget>[
                         SvgPicture.asset(
-                          'assets/premium.svg',
+                          'assets/goldenmask.svg',
                           width: MediaQuery.of(context).size.width * 1,
                         ),
                         Align(
-                          child: Row(
-                            // Use a Row to arrange children horizontally
-                            mainAxisAlignment: MainAxisAlignment
-                                .spaceAround, // Distributes children with space between them
-                            children: [
-                              Column(
-                                // The text is on the left
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Time to Level Up,',
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20.0,
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Saatnya Naik Level, Yuk Upgrade',
+                                      style: TextStyle(
+                                        color: Color(0xffBA2A42),
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    Text(
+                                      'ke Premium Sekarang!',
+                                      style: TextStyle(
+                                        color: Color(0xffBA2A42),
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                TextButton(
+                                  onPressed: () {},
+                                  child: Text(
+                                    'Lihat >>',
                                     style: TextStyle(
-                                      color: Color(0xff0F3D5A),
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w500,
                                     ),
                                   ),
-                                  Text(
-                                    'Let\'s go Premium Now',
-                                    style: TextStyle(
-                                      color: Color(0xff0F3D5A),
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Color(0xff1C6EA4),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  minimumSize: Size(120, 50),
                                 ),
-                                // The button is on the right
-                                onPressed: () {},
-                                child: Text(
-                                  'Selengkapnya',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       ],
+                    ),
+                    SizedBox(height: 20),
+                    Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(15),
+                        border: Border.all(
+                          color: Colors.grey.withOpacity(0.5),
+                          width: 1,
+                        ),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20.0,
+                        vertical: 15.0,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Ringkasan',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                          SizedBox(height: 15),
+                          Center(
+                            child: Column(
+                              children: [
+                                Container(
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.grey,
+                                  ),
+                                  child: SvgPicture.asset(
+                                    'assets/medals2.svg',
+                                    width: 70,
+                                    height: 60,
+                                  ),
+                                ),
+                                SizedBox(height: 10),
+                                Text(
+                                  '${user.username}',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                SizedBox(height: 8),
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: Color(0xffE2EBF0),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 20.0,
+                                      vertical: 6,
+                                    ),
+                                    child: Text(
+                                      'Lv. ${user.level}',
+                                      style: TextStyle(
+                                        color: Color(0xff1C6EA4),
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(height: 15),
+                                SegmentedProgressBar(
+                                  progress: progress,
+                                  segments: 4,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                     SizedBox(height: 20),
                     Row(
@@ -209,114 +279,51 @@ class _ProfileState extends State<Profile> {
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 10.0),
                           child: Text(
-                            'Ringkasan',
+                            'Koleksi Lencana',
                             style: TextStyle(
-                              fontWeight: FontWeight.bold,
                               fontSize: 16,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
                       ],
                     ),
-                    SizedBox(height: 8),
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 20),
-                      child: Column(
+                    SizedBox(height: 13),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Container(
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.grey,
-                            ),
-                            child: SvgPicture.asset(
-                              'assets/emptylogo.svg',
-                              width: 50,
-                              height: 54,
-                            ),
-                          ),
-                          SizedBox(height: 10),
+                          Medals(unlocked: true),
+                          Medals(unlocked: true),
+                          Medals(unlocked: false),
+                          Medals(unlocked: false),
+                          Medals(unlocked: false),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 20),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        fixedSize: Size(double.infinity, 45),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        backgroundColor: Color(0xff1C6EA4),
+                      ),
+                      onPressed: () {
+                        // Navigate to leaderboard
+                      },
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.star_outline, color: Colors.white),
+                          SizedBox(width: 10),
                           Text(
-                            '${user.username}',
+                            'Lihat Papan Peringkat',
                             style: TextStyle(
-                              fontSize: 16,
                               fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          SizedBox(height: 8),
-                          Container(
-                            decoration: BoxDecoration(
-                              color: Color(0xffE2EBF0),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 20.0,
-                                vertical: 6,
-                              ),
-                              child: Text(
-                                'Lv. ${user.level}',
-                                style: TextStyle(
-                                  color: Color(0xff1C6EA4),
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          ),
-                          SizedBox(height: 15),
-                          SegmentedProgressBar(progress: progress, segments: 4),
-                          SizedBox(height: 20),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Koleksi Lencana',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: 13),
-                          SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                // Make it work later on
-                                Medals(unlocked: true),
-                                Medals(unlocked: true),
-                                Medals(unlocked: false),
-                                Medals(unlocked: false),
-                                Medals(unlocked: false),
-                              ],
-                            ),
-                          ),
-                          SizedBox(height: 20),
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              fixedSize: Size(double.infinity, 45),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadiusGeometry.circular(8),
-                              ),
-                              backgroundColor: Color(0xff1C6EA4),
-                            ),
-                            onPressed: () {
-                              // Lihat papan peringkat or whatever
-                            },
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.star_outline, color: Colors.white),
-                                SizedBox(width: 10),
-                                Text(
-                                  'Lihat Papan Peringkat',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ],
+                              color: Colors.white,
                             ),
                           ),
                         ],
@@ -379,13 +386,13 @@ class _ProfileState extends State<Profile> {
 }
 
 class SegmentedProgressBar extends StatelessWidget {
-  final double progress; // between 0.0 and 1.0
+  final double progress;
   final int segments;
 
   const SegmentedProgressBar({
     super.key,
     required this.progress,
-    this.segments = 1, // default 4 segments
+    this.segments = 1,
   });
 
   @override
@@ -394,7 +401,6 @@ class SegmentedProgressBar extends StatelessWidget {
       height: 7,
       child: Stack(
         children: [
-          // Background progress bar
           ClipRRect(
             borderRadius: BorderRadius.circular(10),
             child: LinearProgressIndicator(
@@ -403,8 +409,6 @@ class SegmentedProgressBar extends StatelessWidget {
               valueColor: AlwaysStoppedAnimation<Color>(Color(0xff1C6EA4)),
             ),
           ),
-
-          // Dividers
           Positioned.fill(
             child: LayoutBuilder(
               builder: (context, constraints) {
@@ -416,10 +420,7 @@ class SegmentedProgressBar extends StatelessWidget {
                       left: left,
                       top: 0,
                       bottom: 0,
-                      child: Container(
-                        width: 2, // line thickness
-                        color: Colors.white,
-                      ),
+                      child: Container(width: 2, color: Colors.white),
                     ),
                   );
                 }
@@ -439,13 +440,11 @@ class Medals extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final lockedPicture = SvgPicture.asset('assets/Badge_06.svg');
-    final unlockedPicture = SvgPicture.asset('assets/uis_lock.svg');
+    // Corrected the logic to show the right asset based on `unlocked`
+    final SvgPicture medalPicture = unlocked
+        ? SvgPicture.asset('assets/Badge_06.svg')
+        : SvgPicture.asset('assets/uis_lock.svg');
 
-    return Container(
-      child: unlocked
-          ? Row(children: [lockedPicture, SizedBox(width: 10)])
-          : Row(children: [unlockedPicture, SizedBox(width: 10)]),
-    );
+    return Container(child: Row(children: [medalPicture, SizedBox(width: 10)]));
   }
 }
