@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:jaganalar/Activity.dart';
 import 'package:jaganalar/History.dart';
 import 'package:jaganalar/EditProfile.dart';
@@ -131,22 +132,28 @@ class _DashboardState extends State<Dashboard> {
           }
 
           if (!snapshot.hasData || snapshot.data == null) {
-            return Center(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text('No user found'),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (context) => Signin()),
-                      );
-                    },
-                    child: Text('Return to sign in page'),
-                  ),
-                ],
+            return Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20.0,
+                vertical: 10,
+              ),
+              child: Center(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text('No user found'),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (context) => Signin()),
+                        );
+                      },
+                      child: Text('Return to sign in page'),
+                    ),
+                  ],
+                ),
               ),
             );
           }
@@ -167,34 +174,79 @@ class _DashboardState extends State<Dashboard> {
           int xpNext = xpStart + xpForNextLevel(currentLevel);
           double progress = (currentXP - xpStart) / (xpNext - xpStart);
           progress = progress.clamp(0.0, 1.0);
+          String shortenName = '${user.username!.substring(0, 5)}...';
 
           return SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          const CircleAvatar(),
-                          const SizedBox(width: 8),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Selamat pagi, ${user.username}'),
-                              Text('Level ${user.level} * ${user.xp} xp'),
-                            ],
+            top: false,
+            child: Column(
+              children: [
+                Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(color: Color(0xff1C6EA4)),
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      top: MediaQuery.of(context).padding.top + 20,
+                      left: MediaQuery.of(context).padding.left + 20,
+                      right: MediaQuery.of(context).padding.right + 20,
+                      bottom: MediaQuery.of(context).padding.bottom + 10,
+                    ),
+                    child: Row(
+                      children: [
+                        CircleAvatar(),
+                        SizedBox(
+                          width: MediaQuery.of(context).size.width * 0.03,
+                        ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Selamat Pagi, ${(user.username!.length > 5) ? '$shortenName 👋' : '${user.username} 👋'}',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            Text(
+                              'Level ${user.level} • ${user.xp} XP',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Color(0xffB9D2E3),
+                            minimumSize: Size(
+                              48,
+                              48,
+                            ), // Use equal width and height for a square
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(
+                                8,
+                              ), // Correct syntax for rounded corners
+                            ),
                           ),
-                        ],
-                      ),
-                      const Icon(Icons.notifications),
-                    ],
+                          onPressed: () {},
+                          child: Icon(
+                            Icons.notifications,
+                            color: Color(0xff1C6EA4),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  const Divider(color: Colors.black, thickness: 0.5),
-                  const SizedBox(height: 20),
-                  Column(
+                ),
+                const Divider(color: Colors.black, thickness: 0.5),
+                const SizedBox(height: 20),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20.0,
+                    vertical: 10,
+                  ),
+                  child: Column(
                     children: [
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -347,8 +399,8 @@ class _DashboardState extends State<Dashboard> {
                       ),
                     ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           );
         },
