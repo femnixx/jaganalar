@@ -30,62 +30,36 @@ class _SigninState extends State<Signin> {
       );
 
       // Wait a moment for session to update
-      await Future.delayed(const Duration(seconds: 2));
+      SupabaseService.client.auth.onAuthStateChange.listen((data) async {
+        final session = data.session;
+        if (session != null) {
+          final user = session.user;
+          final existingUser = await SupabaseService.client
+              .from('users')
+              .select()
+              .eq('uuid', user.id)
+              .maybeSingle();
 
-      final session = SupabaseService.client.auth.currentSession;
-      final user = session?.user;
-
-      if (user == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Login gagal, coba lagi.')),
-        );
-        return;
-      }
-
-      // Check if user exists in your 'users' table
-      final existingUser = await SupabaseService.client
-          .from('users')
-          .select()
-          .eq('uuid', user.id)
-          .maybeSingle();
-
-      if (existingUser == null) {
-        await SupabaseService.client.from('users').insert({
-          'uuid': user.id,
-          'username': user.userMetadata?['full_name'] ?? 'Anonymous',
-          'email': user.email,
-          'timestamp': DateTime.now().toIso8601String(),
-        });
-      }
-
-      // Fetch the user from DB to make sure Dashboard has data
-      final dbUser = await SupabaseService.client
-          .from('users')
-          .select()
-          .eq('uuid', user.id)
-          .single();
-
-      if (dbUser == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Gagal memuat data pengguna.')),
-        );
-        return;
-      }
-
-      // Navigate to Dashboard after user is ensured in DB
-      if (context.mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const Dashboard()),
-        );
-      }
+          if (existingUser == null) {
+            await SupabaseService.client.from('users').insert({
+              'uuid': user.id,
+              'username': user.userMetadata?['full_name'] ?? 'Anonymous',
+              'email': user.email,
+              'timestamp': DateTime.now().toIso8601String(),
+            });
+          }
+          if (context.mounted) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => Dashboard()),
+            );
+          }
+        }
+      });
     } catch (e) {
-      print("Error signing in with Google: $e");
-      if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e')));
-      }
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Login gagal : $e')));
     }
   }
 

@@ -39,28 +39,26 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
 
-    // listen to auth state changes
+    // initial session
+    _session = Supabase.instance.client.auth.currentSession;
+
+    // listen to auth state changes only once
     Supabase.instance.client.auth.onAuthStateChange.listen((data) {
       setState(() {
         _session = data.session;
       });
     });
-
-    // initial session
-    _session = Supabase.instance.client.auth.currentSession;
   }
 
   @override
   Widget build(BuildContext context) {
-    final session = Supabase.instance.client.auth.currentSession;
-
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'JagaNalar',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: session != null ? Splashscreen() : Signin(),
+      home: _session != null ? Splashscreen() : Signin(),
     );
   }
 }
