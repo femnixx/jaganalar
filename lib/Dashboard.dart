@@ -9,6 +9,9 @@ import 'package:jaganalar/SignIn.dart';
 import 'package:jaganalar/UserModel.dart';
 import 'package:jaganalar/main.dart';
 import 'Supabase.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path/path.dart' as p;
+import 'dart:io';
 
 class Dashboard extends StatefulWidget {
   const Dashboard({Key? key}) : super(key: key);
@@ -18,6 +21,39 @@ class Dashboard extends StatefulWidget {
 }
 
 class _DashboardState extends State<Dashboard> {
+  Future<void> uploadProfilePicture(String userId) async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile == null) return;
+
+    final imageFile = File(pickedFile.path);
+    final fileExt = p.extension(imageFile.path);
+    final filePath = '$userId$fileExt';
+
+    // upload to supabasestorage
+    final uploadResponse = await SupabaseService.client.storage
+        .from('avatars')
+        .upload(filePath, imageFile);
+
+    if (uploadResponse.isEmpty) {
+      print('Upload error');
+      return;
+    }
+
+    // get public URL
+    final imageUrl = SupabaseService.client.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+    await SupabaseService.client
+        .from('users')
+        .update({'avatar_url': imageUrl})
+        .eq('uuid', userId);
+
+    setState(() {});
+  }
+
   int _currentIndex = 0;
   final String userId = SupabaseService.client.auth.currentUser!.id;
   late Future<UserModel?> userFuture;
@@ -116,7 +152,13 @@ class _DashboardState extends State<Dashboard> {
               child: SingleChildScrollView(
                 child: Column(
                   children: [
-                    _buildHeader(context, shortenName, currentLevel, currentXP),
+                    _buildHeader(
+                      context,
+                      user,
+                      shortenName,
+                      currentLevel,
+                      currentXP,
+                    ),
                     SizedBox(height: 20),
                     _buildXPCard(progress, currentLevel, currentXP, xpNext),
                     _buildWeeklyMission(context),
@@ -137,7 +179,13 @@ class _DashboardState extends State<Dashboard> {
   }
 
   /// Header Section with Blue Background & SVG
-  Widget _buildHeader(BuildContext context, String name, int level, int xp) {
+  Widget _buildHeader(
+    BuildContext context,
+    UserModel user,
+    String name,
+    int level,
+    int xp,
+  ) {
     return Container(
       width: double.infinity,
       height: MediaQuery.of(context).size.height * 0.15,
@@ -160,7 +208,19 @@ class _DashboardState extends State<Dashboard> {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    const CircleAvatar(radius: 20),
+                    CircleAvatar(
+                      radius: 20,
+                      backgroundImage: user.avatarUrl != null
+                          ? NetworkImage(user.avatarUrl!)
+                          : null,
+                      child: user.avatarUrl == null
+                          ? const Icon(
+                              Icons.person,
+                              size: 40,
+                              color: Colors.white,
+                            )
+                          : null,
+                    ),
                     const SizedBox(width: 10),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
