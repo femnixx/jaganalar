@@ -146,6 +146,9 @@ class _QuizPageState extends State<QuizPage> {
             ],
           ),
         );
+        setState(() {
+          fetchUser();
+        });
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => Dashboard()),
