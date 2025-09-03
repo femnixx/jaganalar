@@ -125,7 +125,6 @@ class _DashboardState extends State<Dashboard> {
                     SizedBox(height: 20),
                     _buildStats(user),
                     // Add this line to create space at the bottom
-                    SizedBox(height: 40),
                   ],
                 ),
               ),
