@@ -114,7 +114,7 @@ class _DashboardState extends State<Dashboard> {
             child: Column(
               children: [
                 _buildHeader(context, shortenName, currentLevel, currentXP),
-                SizedBox(height: 15),
+                SizedBox(height: 20),
                 _buildXPCard(progress, currentLevel, currentXP, xpNext),
                 _buildWeeklyMission(context),
                 _buildStats(user),
@@ -328,9 +328,9 @@ class _DashboardState extends State<Dashboard> {
 
   Widget _buildWeeklyMission(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Container(
-        height: 200, // fixed height
+        height: MediaQuery.of(context).size.height * 0.20, // fixed height
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(15), // Adds rounded corners
           boxShadow: [
@@ -359,9 +359,32 @@ class _DashboardState extends State<Dashboard> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Misi Mingguan',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(12),
+                        topRight: Radius.circular(4),
+                        bottomLeft: Radius.circular(4),
+                        bottomRight: Radius.circular(4),
+                      ),
+                      gradient: LinearGradient(
+                        colors: [
+                          Color(0xffFFB146),
+                          Color(0xffFF8A00),
+                          Color(0xffFFA831),
+                        ],
+                      ),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                      child: const Text(
+                        'Misi Mingguan',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 16),
                   const Text('Pendeteksi misinformasi digital'),
