@@ -119,151 +119,8 @@ class _DashboardState extends State<Dashboard> {
                   _buildXPCard(progress, currentLevel, currentXP, xpNext),
                   _buildWeeklyMission(context),
                   SizedBox(height: 20),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Container(
-                      height: MediaQuery.of(context).size.height * 0.20,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(15),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 10,
-                            offset: const Offset(0, 5),
-                          ),
-                        ],
-                      ),
-                      child: Stack(
-                        children: [
-                          Positioned.fill(
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(15),
-                              child: SvgPicture.asset(
-                                'assets/frame1(1).svg',
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                          ),
-                          Positioned(
-                            top: 16,
-                            left: 16,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Container(
-                                  decoration: const BoxDecoration(
-                                    borderRadius: BorderRadius.only(
-                                      topLeft: Radius.circular(12),
-                                      topRight: Radius.circular(4),
-                                      bottomLeft: Radius.circular(4),
-                                      bottomRight: Radius.circular(4),
-                                    ),
-                                    gradient: LinearGradient(
-                                      colors: [
-                                        Color(0xffFFB146),
-                                        Color(0xffFF8A00),
-                                        Color(0xffFFA831),
-                                      ],
-                                    ),
-                                  ),
-                                  child: const Padding(
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: 8.0,
-                                      vertical: 3,
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Column(
-                                          children: [
-                                            Text(
-                                              'Misi Mingguan',
-                                              style: TextStyle(
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.normal,
-                                                color: Colors.white,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(height: 10),
-                                Row(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      'Pendeteksi\n Misinformasi Digital',
-                                      softWrap: true,
-                                      style: TextStyle(
-                                        fontSize: 19,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                    SizedBox(
-                                      width:
-                                          MediaQuery.of(context).size.width *
-                                          0.05,
-                                    ),
-                                    ElevatedButton(
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.white
-                                            .withOpacity(0.1),
-                                        shadowColor: Colors.transparent,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            8,
-                                          ),
-                                        ),
-                                      ),
-                                      onPressed: () async {
-                                        final questions =
-                                            await fetchQuizQuestions();
-                                        if (questions.isEmpty) {
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            const SnackBar(
-                                              content: Text(
-                                                "No quiz questions available.",
-                                              ),
-                                            ),
-                                          );
-                                          return;
-                                        }
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (_) =>
-                                                QuizPage(questions: questions),
-                                          ),
-                                        ).then(
-                                          (_) => setState(
-                                            () =>
-                                                userFuture = fetchUser(userId),
-                                          ),
-                                        );
-                                      },
-                                      child: const Text(
-                                        'Mulai Misi >>',
-                                        style: TextStyle(color: Colors.white),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                  _buildRankingCard(context),
                   SizedBox(height: 20),
-
                   _buildStats(user),
                 ],
               ),
@@ -500,15 +357,11 @@ class _DashboardState extends State<Dashboard> {
                 ),
               ),
             ),
-            Positioned(
-              top: 16,
-              left: 16,
-              // Use a SizedBox to constrain the width of the inner content
-              child: SizedBox(
-                width:
-                    MediaQuery.of(context).size.width -
-                    64, // 20 (left padding) + 16 (positioned left) + 16 (positioned right/margin) + 12 (right padding)
+            Padding(
+              padding: const EdgeInsets.only(left: 16, right: 16),
+              child: Center(
                 child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
@@ -545,16 +398,152 @@ class _DashboardState extends State<Dashboard> {
                     const SizedBox(height: 10),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.end,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         const Text(
                           'Pendeteksi\nMisinformasi Digital',
                           softWrap: true,
                           style: TextStyle(
-                            fontSize: 19,
+                            fontSize: 18,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
                           ),
+                        ),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white.withOpacity(0.1),
+                            shadowColor: Colors.transparent,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          onPressed: () async {
+                            final questions = await fetchQuizQuestions();
+                            if (questions.isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text("No quiz questions available."),
+                                ),
+                              );
+                              return;
+                            }
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => QuizPage(questions: questions),
+                              ),
+                            ).then(
+                              (_) => setState(
+                                () => userFuture = fetchUser(userId),
+                              ),
+                            );
+                          },
+                          child: const Text(
+                            'Mulai Misi >>',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRankingCard(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Container(
+        height: MediaQuery.of(context).size.height * 0.20,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(15),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 5),
+            ),
+          ],
+        ),
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(15),
+                child: SvgPicture.asset(
+                  'assets/frame1(1).svg',
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(left: 16, right: 16),
+              child: Center(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      decoration: const BoxDecoration(
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(12),
+                          topRight: Radius.circular(4),
+                          bottomLeft: Radius.circular(4),
+                          bottomRight: Radius.circular(4),
+                        ),
+                        gradient: LinearGradient(
+                          colors: [
+                            Color(0xffFFB146),
+                            Color(0xffFF8A00),
+                            Color(0xffFFA831),
+                          ],
+                        ),
+                      ),
+                      child: const Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 8.0,
+                          vertical: 3,
+                        ),
+                        child: Text(
+                          'Ranking Kamu',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.normal,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '#12',
+                              softWrap: true,
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            Text(
+                              '1,000 poin di minggu ini',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Color(0xffD7D7D7),
+                              ),
+                            ),
+                          ],
                         ),
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(
