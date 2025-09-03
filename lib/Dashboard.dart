@@ -6,6 +6,7 @@ import 'package:jaganalar/Profile.dart';
 import 'package:jaganalar/QuizQuestion.dart';
 import 'package:jaganalar/SignIn.dart';
 import 'package:jaganalar/UserModel.dart';
+import 'package:jaganalar/main.dart';
 import 'Supabase.dart';
 
 class Dashboard extends StatefulWidget {
@@ -35,22 +36,26 @@ class _DashboardState extends State<Dashboard> {
     return response != null ? UserModel.fromMap(response) : null;
   }
 
+  // Reworked XP calculation logic to be more reusable and clear
   int xpForNextLevel(int level) => 100 + (level - 1) * 20;
 
   Future<void> updateLevel() async {
     final user = await fetchUser(userId);
     if (user == null) return;
 
-    int currentLevel = user.level ?? 1;
     int totalXP = user.xp ?? 0;
-    int newLevel = 1, remainingXP = totalXP;
+    int newLevel = 1;
+    int requiredXPForNextLevel = xpForNextLevel(newLevel);
 
-    while (remainingXP >= xpForNextLevel(newLevel)) {
-      remainingXP -= xpForNextLevel(newLevel);
+    // Loop to determine the correct level based on total XP
+    while (totalXP >= requiredXPForNextLevel) {
+      totalXP -= requiredXPForNextLevel;
       newLevel++;
+      requiredXPForNextLevel = xpForNextLevel(newLevel);
     }
 
-    if (newLevel != currentLevel) {
+    // Only update if the level has changed
+    if (newLevel != user.level) {
       await SupabaseService.client
           .from('users')
           .update({'level': newLevel})
@@ -114,6 +119,7 @@ class _DashboardState extends State<Dashboard> {
             child: Column(
               children: [
                 _buildHeader(context, shortenName, currentLevel, currentXP),
+                SizedBox(height: 15),
                 _buildXPCard(progress, currentLevel, currentXP, xpNext),
                 _buildWeeklyMission(context),
                 _buildStats(user),
@@ -135,19 +141,26 @@ class _DashboardState extends State<Dashboard> {
       child: Stack(
         children: [
           Positioned.fill(
-            child: SvgPicture.asset('assets/maskgroup.svg', fit: BoxFit.cover),
+            child: SvgPicture.asset(
+              'assets/maskgroup.svg',
+              fit: BoxFit.cover,
+              color: Color(0xff19F0FB),
+            ),
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+            padding: const EdgeInsets.only(left: 20, right: 20),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     const CircleAvatar(radius: 20),
                     const SizedBox(width: 10),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
                           'Selamat Pagi, $name 👋',
@@ -184,7 +197,7 @@ class _DashboardState extends State<Dashboard> {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(8),
@@ -194,10 +207,40 @@ class _DashboardState extends State<Dashboard> {
           ),
           child: Column(
             children: [
-              const Text('You\'re off to a great start!'),
+              Align(
+                alignment: Alignment.topLeft,
+                child: const Text(
+                  'You\'re off to a great start!',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+              ),
+              SizedBox(height: 10),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [Text('Level $level'), Text('$xp XP / $xpNext XP')],
+                children: [
+                  Text(
+                    'Level $level',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
+                  ),
+                  Row(
+                    children: [
+                      Text(
+                        '$xp XP /',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        '${xpNext}',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Color(0xff969696),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
               const SizedBox(height: 8),
               LinearProgressIndicator(

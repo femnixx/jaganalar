@@ -129,7 +129,6 @@ class _QuizPageState extends State<QuizPage> {
         });
       } else {
         // Quiz finished
-        updateMissionCount();
         if (!mounted) return;
         showDialog(
           context: context,
@@ -138,7 +137,10 @@ class _QuizPageState extends State<QuizPage> {
             content: Text('good job'),
             actions: [
               TextButton(
-                onPressed: () => Navigator.pop(context),
+                onPressed: () => Navigator.pop(context, {
+                  'xp_gained': 20,
+                  'missions_gained': 1,
+                }),
                 child: Text('OK'),
               ),
             ],
