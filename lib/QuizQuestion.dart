@@ -106,7 +106,7 @@ class _QuizPageState extends State<QuizPage> {
 
     try {
       await SupabaseService.client.from('quiz_completed').upsert({
-        'user_id': userId,
+        'uuid': userId,
         'quiz_id': quizId,
         'completed': true,
         'title': widget.quizSet.title,
@@ -128,6 +128,7 @@ class _QuizPageState extends State<QuizPage> {
       // Last question → async updates must run outside of setState
       await updateMissionCountAndLevelUp();
       await addHistory(widget.quizSet.id);
+      print(addHistory(widget.quizSet.id));
       setState(() {});
       if (!mounted) return;
       // Show dialog after async operations
