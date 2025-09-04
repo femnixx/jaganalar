@@ -114,67 +114,72 @@ class _DashboardState extends State<Dashboard> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SingleChildScrollView(
-        child: FutureBuilder<UserModel?>(
-          future: userFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
-
-            if (!snapshot.hasData) {
-              return _buildNoUserFound(context);
-            }
-
-            final user = snapshot.data!;
-            final currentLevel = user.level ?? 1;
-            final currentXP = user.xp ?? 0;
-            final username = user.username ?? "User";
-            final shortenName = username.length > 5
-                ? '${username.substring(0, 5)}...'
-                : username;
-
-            // XP Progress Calculation
-            int xpForPreviousLevels(int level) {
-              int total = 0;
-              for (int i = 1; i < level; i++) {
-                total += xpForNextLevel(i);
+    return SafeArea(
+      child: Scaffold(
+        body: SingleChildScrollView(
+          child: FutureBuilder<UserModel?>(
+            future: userFuture,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
               }
-              return total;
-            }
 
-            final xpStart = xpForPreviousLevels(currentLevel);
-            final xpNext = xpStart + xpForNextLevel(currentLevel);
-            final progress = ((currentXP) / (xpNext - xpStart)).clamp(0.0, 1.0);
+              if (!snapshot.hasData) {
+                return _buildNoUserFound(context);
+              }
 
-            return SafeArea(
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    _buildHeader(
-                      context,
-                      user,
-                      shortenName,
-                      currentLevel,
-                      currentXP,
-                    ),
-                    SizedBox(height: 20),
-                    _buildXPCard(progress, currentLevel, currentXP, xpNext),
-                    _buildWeeklyMission(context),
-                    SizedBox(height: 20),
-                    _buildRankingCard(context),
-                    SizedBox(height: 20),
-                    _buildStats(user),
-                    // Add this line to create space at the bottom
-                  ],
+              final user = snapshot.data!;
+              final currentLevel = user.level ?? 1;
+              final currentXP = user.xp ?? 0;
+              final username = user.username ?? "User";
+              final shortenName = username.length > 5
+                  ? '${username.substring(0, 5)}...'
+                  : username;
+
+              // XP Progress Calculation
+              int xpForPreviousLevels(int level) {
+                int total = 0;
+                for (int i = 1; i < level; i++) {
+                  total += xpForNextLevel(i);
+                }
+                return total;
+              }
+
+              final xpStart = xpForPreviousLevels(currentLevel);
+              final xpNext = xpStart + xpForNextLevel(currentLevel);
+              final progress = ((currentXP) / (xpNext - xpStart)).clamp(
+                0.0,
+                1.0,
+              );
+
+              return SafeArea(
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      _buildHeader(
+                        context,
+                        user,
+                        shortenName,
+                        currentLevel,
+                        currentXP,
+                      ),
+                      SizedBox(height: 20),
+                      _buildXPCard(progress, currentLevel, currentXP, xpNext),
+                      _buildWeeklyMission(context),
+                      SizedBox(height: 20),
+                      _buildRankingCard(context),
+                      SizedBox(height: 20),
+                      _buildStats(user),
+                      SizedBox(height: 5),
+                    ],
+                  ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
+        bottomNavigationBar: _buildBottomNav(context),
       ),
-      bottomNavigationBar: _buildBottomNav(context),
     );
   }
 
@@ -346,34 +351,31 @@ class _DashboardState extends State<Dashboard> {
 
   /// Stats Section
   Widget _buildStats(UserModel user) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      padding: EdgeInsets.fromLTRB(50, 0, 50, 40),
-      child: Center(
-        child: Row(
-          children: [
-            _buildStatBox(
-              "Streak",
-              user.streak ?? 0,
-              'assets/framestreak.svg',
-              'assets/streak2.svg',
-            ),
-            const SizedBox(width: 15),
-            _buildStatBox(
-              "Missions",
-              12,
-              'assets/framemissions.svg',
-              'assets/plolygon.svg',
-            ),
-            const SizedBox(width: 15),
-            _buildStatBox(
-              "Medals",
-              5,
-              'assets/framestreak.svg',
-              'assets/medals2.svg',
-            ),
-          ],
-        ),
+    return Center(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _buildStatBox(
+            "Streak",
+            user.streak ?? 0,
+            'assets/framestreak.svg',
+            'assets/streak2.svg',
+          ),
+          const SizedBox(width: 15),
+          _buildStatBox(
+            "Missions",
+            user.missions ?? 0,
+            'assets/framemissions.svg',
+            'assets/plolygon.svg',
+          ),
+          const SizedBox(width: 15),
+          _buildStatBox(
+            "Medals",
+            user.streak ?? 0,
+            'assets/framestreak.svg',
+            'assets/medals2.svg',
+          ),
+        ],
       ),
     );
   }
@@ -387,7 +389,7 @@ class _DashboardState extends State<Dashboard> {
   ) {
     return Container(
       height: 120,
-      width: MediaQuery.of(context).size.width * 0.30,
+      width: MediaQuery.of(context).size.width * 0.25,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
         boxShadow: [

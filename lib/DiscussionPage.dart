@@ -10,6 +10,6 @@ class Discussionpage extends StatefulWidget {
 class _DiscussionpageState extends State<Discussionpage> {
   @override
   Widget build(BuildContext context) {
-    return Container(child: null);
+    return Container(child: Text('Hi there'));
   }
 }

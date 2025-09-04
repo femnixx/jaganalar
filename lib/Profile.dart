@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:jaganalar/Premium.dart';
 import 'package:jaganalar/Settings.dart';
 import 'package:jaganalar/UserModel.dart';
 import 'Supabase.dart';
@@ -234,7 +235,14 @@ class _ProfileState extends State<Profile> {
                                   ],
                                 ),
                                 TextButton(
-                                  onPressed: () {},
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => Premium(),
+                                      ),
+                                    );
+                                  },
                                   child: Text(
                                     'Lihat >>',
                                     style: TextStyle(
