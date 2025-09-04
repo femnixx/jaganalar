@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'Premium2.dart';
 
 class Premium extends StatefulWidget {
   const Premium({super.key});
@@ -50,7 +51,11 @@ class _PremiumState extends State<Premium> {
                 textAlign: TextAlign.justify,
               ),
               SizedBox(height: 20),
-              SvgPicture.asset('assets/Logo.svg', width: 180, height: 140),
+              SvgPicture.asset(
+                'assets/transparentlogo.svg',
+                width: 180,
+                height: 140,
+              ),
               Container(
                 width: double.infinity,
                 decoration: BoxDecoration(
@@ -96,6 +101,10 @@ class _PremiumState extends State<Premium> {
                 ),
                 onPressed: () {
                   // do whatever
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => Premium2()),
+                  );
                 },
                 child: Text(
                   'Dapatkan JagaNalar Premium',
