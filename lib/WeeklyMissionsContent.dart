@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:jaganalar/QuizQuestion.dart'; // Make sure this file exists and is correct
@@ -14,7 +15,6 @@ class WeeklyMissionsContent extends StatelessWidget {
           .from('questions')
           .select('*')
           .order('created_at', ascending: false);
-
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<Map<String, dynamic>>>(
@@ -33,16 +33,38 @@ class WeeklyMissionsContent extends StatelessWidget {
           itemCount: missions.length,
           itemBuilder: (context, index) {
             final mission = missions[index];
+            final int numberOfQuestions =
+                (mission['questions'] as List<dynamic>?)?.length ?? 0;
             return Card(
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Stack(
                 children: [
-                  Container(
-                    child: Positioned.fill(
-                      child: SvgPicture.asset('assets/questionsframe.svg'),
+                  Positioned.fill(
+                    child: SvgPicture.asset(
+                      'assets/questionsframe.svg',
+                      fit: BoxFit.cover,
                     ),
                   ),
-                  Text('Hi there'),
+                  Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          children: [
+                            Text('${mission['title'] ?? "No title"}'),
+                            Text(
+                              '$numberOfQuestions Pertanyaan • ${mission['points'] ?? 0}XP',
+                            ),
+                          ],
+                        ),
+                        ElevatedButton(
+                          onPressed: () {},
+                          child: Text('Mulai >>'),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             );

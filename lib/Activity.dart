@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:jaganalar/WeeklyMissionsContent.dart'; // We'll fix this next
+import 'package:jaganalar/WeeklyMissionsContent.dart';
+import 'Dashboard.dart';
+import 'History.dart';
+import 'Profile.dart';
 
 class Activity extends StatefulWidget {
   const Activity({super.key});
@@ -11,6 +14,36 @@ class Activity extends StatefulWidget {
 class _ActivityState extends State<Activity>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+
+  /// Bottom Navigation Bar
+  Widget _buildBottomNav(BuildContext context) {
+    int _currentIndex = 1;
+
+    final pages = [
+      const Dashboard(),
+      const Activity(),
+      const History(),
+      const Profile(),
+    ];
+    return BottomNavigationBar(
+      currentIndex: _currentIndex,
+      selectedItemColor: Colors.black,
+      unselectedItemColor: Colors.grey,
+      onTap: (index) {
+        setState(() => _currentIndex = index);
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => pages[index]),
+        );
+      },
+      items: const [
+        BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+        BottomNavigationBarItem(icon: Icon(Icons.games), label: 'Activity'),
+        BottomNavigationBarItem(icon: Icon(Icons.history), label: 'History'),
+        BottomNavigationBarItem(icon: Icon(Icons.person_2), label: 'Profile'),
+      ],
+    );
+  }
 
   @override
   void initState() {
@@ -57,6 +90,7 @@ class _ActivityState extends State<Activity>
           const Center(child: Text('Content for Misi Harian')),
         ],
       ),
+      bottomNavigationBar: _buildBottomNav(context),
     );
   }
 }
