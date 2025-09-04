@@ -1,10 +1,9 @@
-import 'Dashboard.dart';
-import 'Activity.dart';
 import 'package:flutter/material.dart';
-import 'History.dart';
-import 'Profile.dart';
+import 'package:jaganalar/Dashboard.dart';
+import 'package:jaganalar/Activity.dart';
+import 'package:jaganalar/History.dart';
+import 'package:jaganalar/Profile.dart';
 
-// Your main screen should be a StatefulWidget to manage the tab state
 class MyMainScreen extends StatefulWidget {
   const MyMainScreen({super.key});
 
@@ -13,27 +12,24 @@ class MyMainScreen extends StatefulWidget {
 }
 
 class _MyMainScreenState extends State<MyMainScreen> {
-  // 1. Move _currentIndex and pages to the state class
   int _currentIndex = 0;
-
-  final List<Widget> _pages = [
-    const Dashboard(),
-    const Activity(),
-    const History(),
-    const Profile(),
-  ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // 2. The body of the Scaffold changes based on the index
-      body: _pages[_currentIndex],
+      body: Stack(
+        children: [
+          Visibility(visible: _currentIndex == 0, child: const Dashboard()),
+          Visibility(visible: _currentIndex == 1, child: const Activity()),
+          Visibility(visible: _currentIndex == 2, child: const History()),
+          Visibility(visible: _currentIndex == 3, child: const Profile()),
+        ],
+      ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         selectedItemColor: const Color(0xff1C6EA4),
         unselectedItemColor: Colors.grey,
         onTap: (index) {
-          // 3. Update the state and rebuild the UI
           setState(() {
             _currentIndex = index;
           });

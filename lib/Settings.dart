@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:jaganalar/EditProfile.dart';
 import 'package:jaganalar/SignIn.dart';
 import 'package:jaganalar/Supabase.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class Settings extends StatefulWidget {
-  const Settings({super.key});
+  const Settings({Key? key}) : super(key: key);
 
   @override
   State<Settings> createState() => _SettingsState();
@@ -15,6 +15,30 @@ class _SettingsState extends State<Settings> {
   bool receiveNotifications = true;
   bool weeklyMissions = false;
   bool dailyReminders = true;
+
+  // -----------------------------
+  // Sign-out method
+  // -----------------------------
+  Future<void> _signOut() async {
+    try {
+      // 1️⃣ Sign out from Supabase
+      await SupabaseService.client.auth.signOut();
+
+      // 2️⃣ Navigate to SignIn screen and remove all previous routes
+      if (mounted) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) => const Signin()),
+          (route) => false,
+        );
+      }
+    } catch (e) {
+      debugPrint("Error signing out: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Gagal sign out, coba lagi")),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,30 +55,24 @@ class _SettingsState extends State<Settings> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 11),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Akun Section
-              const Text(
-                'Akun',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
+              const SectionTitle(title: 'Akun'),
               const SizedBox(height: 6),
               SettingsBuilder(
                 items: [
-                  SettingsItem(title: 'Preferensi'),
-                  SettingsItem(title: 'Edit Profil', page: Editprofile()),
-                  SettingsItem(title: 'Ganti Password'),
+                  const SettingsItem(title: 'Preferensi'),
+                  const SettingsItem(title: 'Edit Profil', page: Editprofile()),
+                  const SettingsItem(title: 'Ganti Password'),
                 ],
               ),
               const SizedBox(height: 20),
 
               // Notifikasi Section
-              const Text(
-                'Notifikasi',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
+              const SectionTitle(title: 'Notifikasi'),
               const SizedBox(height: 6),
               SettingsBuilder(
                 items: [
@@ -81,10 +99,7 @@ class _SettingsState extends State<Settings> {
               const SizedBox(height: 20),
 
               // Langganan Section
-              const Text(
-                'Langganan',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
+              const SectionTitle(title: 'Langganan'),
               const SizedBox(height: 6),
               Container(
                 decoration: BoxDecoration(
@@ -139,13 +154,10 @@ class _SettingsState extends State<Settings> {
               const SizedBox(height: 20),
 
               // Lainnya Section
-              const Text(
-                'Lainnya',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
+              const SectionTitle(title: 'Lainnya'),
               const SizedBox(height: 6),
               SettingsBuilder(
-                items: [
+                items: const [
                   SettingsItem(title: 'Pusat Bantuan'),
                   SettingsItem(title: 'Kebijakan Privasi'),
                   SettingsItem(title: 'Ketentuan'),
@@ -156,14 +168,18 @@ class _SettingsState extends State<Settings> {
               // Sign Out Button
               Center(
                 child: ElevatedButton(
-                  onPressed: () async {
-                    await SupabaseService.client.auth.signOut();
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (context) => const Signin()),
-                    );
-                  },
-                  child: const Text('Sign Out'),
+                  onPressed: _signOut,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.redAccent,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 40,
+                      vertical: 14,
+                    ),
+                  ),
+                  child: const Text(
+                    'Sign Out',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
                 ),
               ),
             ],
@@ -174,14 +190,29 @@ class _SettingsState extends State<Settings> {
   }
 }
 
-// Data model for settings items
+// -----------------------------
+// Reusable Components
+// -----------------------------
+class SectionTitle extends StatelessWidget {
+  final String title;
+  const SectionTitle({Key? key, required this.title}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      title,
+      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+    );
+  }
+}
+
 class SettingsItem {
   final String title;
   final bool? switchValue;
   final ValueChanged<bool>? onSwitchChanged;
   final Widget? page;
 
-  SettingsItem({
+  const SettingsItem({
     required this.title,
     this.switchValue,
     this.onSwitchChanged,
@@ -190,9 +221,8 @@ class SettingsItem {
 }
 
 class SettingsBuilder extends StatelessWidget {
-  const SettingsBuilder({super.key, required this.items});
-
   final List<SettingsItem> items;
+  const SettingsBuilder({Key? key, required this.items}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -204,8 +234,7 @@ class SettingsBuilder extends StatelessWidget {
       ),
       child: ListView.separated(
         shrinkWrap: true,
-        physics:
-            const NeverScrollableScrollPhysics(), // To prevent scrolling inside the list
+        physics: const NeverScrollableScrollPhysics(),
         itemCount: items.length,
         itemBuilder: (context, index) {
           final item = items[index];
@@ -221,7 +250,7 @@ class SettingsBuilder extends StatelessWidget {
               if (item.page != null) {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => item.page!),
+                  MaterialPageRoute(builder: (_) => item.page!),
                 );
               }
             },

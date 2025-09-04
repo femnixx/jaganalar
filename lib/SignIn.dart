@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:jaganalar/Dashboard.dart';
-import 'package:jaganalar/ForgotPassword.dart';
+import 'package:jaganalar/main_screen.dart';
 import 'package:jaganalar/SignUp.dart';
+import 'package:jaganalar/ForgotPassword.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'Supabase.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'Supabase.dart';
 
 class Signin extends StatefulWidget {
   const Signin({Key? key}) : super(key: key);
@@ -21,50 +20,32 @@ class _SigninState extends State<Signin> {
   bool _hidePassword = true;
   bool _rememberMe = false;
 
-  Future<void> signInWithGoogle() async {
-    try {
-      // Start OAuth login
-      await SupabaseService.client.auth.signInWithOAuth(
-        OAuthProvider.google,
-        redirectTo: 'io.supabase.flutter://login-callback',
-      );
+  @override
+  void initState() {
+    super.initState();
 
-      // Listen for session change once
-      SupabaseService.client.auth.onAuthStateChange.listen((data) async {
-        final session = data.session;
-        if (session != null) {
-          final user = session.user;
+    // Listen to auth state changes
+    SupabaseService.client.auth.onAuthStateChange.listen((data) {
+      final session = data.session;
+      if (session != null) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => MyMainScreen()),
+        );
+      }
+    });
 
-          // Check if user already exists in your "users" table
-          final existingUser = await SupabaseService.client
-              .from('users')
-              .select()
-              .eq('uuid', user.id)
-              .maybeSingle();
+    // Check current session on start
+    WidgetsBinding.instance.addPostFrameCallback((_) => _checkSession());
+  }
 
-          if (existingUser == null) {
-            // Insert only if it doesn't exist
-            await SupabaseService.client.from('users').insert({
-              'uuid': user.id,
-              'username': user.userMetadata?['full_name'] ?? 'Anonymous',
-              'email': user.email,
-              'timestamp': DateTime.now().toIso8601String(),
-            });
-          }
-
-          // Navigate after everything is done
-          if (context.mounted) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => Dashboard()),
-            );
-          }
-        }
-      });
-    } catch (e) {
-      ScaffoldMessenger.of(
+  Future<void> _checkSession() async {
+    final session = SupabaseService.client.auth.currentSession;
+    if (session != null) {
+      Navigator.pushReplacement(
         context,
-      ).showSnackBar(SnackBar(content: Text('Login gagal : $e')));
+        MaterialPageRoute(builder: (_) => MyMainScreen()),
+      );
     }
   }
 
@@ -80,18 +61,34 @@ class _SigninState extends State<Signin> {
         password: password,
       );
 
-      final user = res.user;
-      if (user != null && context.mounted) {
+      final session = SupabaseService.client.auth.currentSession;
+      if (session != null) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => const Dashboard()),
-        ).then((_) {});
+          MaterialPageRoute(builder: (_) => MyMainScreen()),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Login gagal, coba lagi.')),
+        );
       }
     } catch (e) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Error: $e')));
-      print(e);
+    }
+  }
+
+  Future<void> signInWithGoogle() async {
+    try {
+      await SupabaseService.client.auth.signInWithOAuth(
+        OAuthProvider.google,
+        redirectTo: 'io.supabase.flutter://login-callback',
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Login gagal: $e')));
     }
   }
 
@@ -106,7 +103,6 @@ class _SigninState extends State<Signin> {
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
-
     bool allValid =
         emailController.text.isNotEmpty && passwordController.text.isNotEmpty;
 
@@ -126,7 +122,6 @@ class _SigninState extends State<Signin> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       SizedBox(height: screenHeight * 0.05),
-                      // Logo and App Name
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -161,7 +156,6 @@ class _SigninState extends State<Signin> {
                         textAlign: TextAlign.center,
                       ),
                       SizedBox(height: screenHeight * 0.03),
-                      // Email TextField
                       TextField(
                         controller: emailController,
                         decoration: InputDecoration(
@@ -173,7 +167,6 @@ class _SigninState extends State<Signin> {
                         onChanged: (_) => setState(() {}),
                       ),
                       SizedBox(height: screenHeight * 0.02),
-                      // Password TextField
                       TextField(
                         controller: passwordController,
                         obscureText: _hidePassword,
@@ -198,7 +191,6 @@ class _SigninState extends State<Signin> {
                         onChanged: (_) => setState(() {}),
                       ),
                       SizedBox(height: screenHeight * 0.02),
-                      // Remember Me & Forgot Password
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -229,7 +221,6 @@ class _SigninState extends State<Signin> {
                         ],
                       ),
                       SizedBox(height: screenHeight * 0.02),
-                      // Login Button
                       ElevatedButton(
                         onPressed: allValid ? signInWithEmail : null,
                         style: ElevatedButton.styleFrom(
@@ -266,7 +257,6 @@ class _SigninState extends State<Signin> {
                         ],
                       ),
                       const SizedBox(height: 20),
-                      // Google Login Button
                       ElevatedButton(
                         onPressed: signInWithGoogle,
                         style: ElevatedButton.styleFrom(
