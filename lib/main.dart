@@ -11,8 +11,11 @@ import 'package:jaganalar/home_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'consts.dart';
 
+// Import your new main screen file
+import 'package:jaganalar/main_screen.dart';
+
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized(); // Important!
+  WidgetsFlutterBinding.ensureInitialized();
 
   await Gemini.init(apiKey: GEMINI_API_KEY);
 
@@ -38,11 +41,7 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-
-    // Get persisted user session
     _user = Supabase.instance.client.auth.currentUser;
-
-    // Listen for auth state changes
     Supabase.instance.client.auth.onAuthStateChange.listen((data) {
       setState(() {
         _user = data.session?.user;
@@ -56,9 +55,16 @@ class _MyAppState extends State<MyApp> {
       debugShowCheckedModeBanner: false,
       title: 'JagaNalar',
       theme: ThemeData(
+        dialogBackgroundColor: Colors.white,
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        scaffoldBackgroundColor: Colors.white,
+        bottomNavigationBarTheme: BottomNavigationBarThemeData(
+          backgroundColor: Colors.white70,
+        ),
+        appBarTheme: AppBarTheme(backgroundColor: Colors.white),
       ),
-      home: _user != null ? const Dashboard() : const Signin(),
+      // This is the key change
+      home: _user != null ? const MyMainScreen() : const Signin(),
     );
   }
 }

@@ -713,23 +713,16 @@ class _DashboardState extends State<Dashboard> {
   }
 
   /// Bottom Navigation Bar
+  // Place this method inside a State class, e.g., _MyScreenState
   Widget _buildBottomNav(BuildContext context) {
-    final pages = [
-      const Dashboard(),
-      const Activity(),
-      const History(),
-      const Profile(),
-    ];
     return BottomNavigationBar(
-      currentIndex: _currentIndex,
-      selectedItemColor: Colors.black,
+      currentIndex: _currentIndex, // Now uses the state variable
+      selectedItemColor: Color(0xff1C6EA4),
       unselectedItemColor: Colors.grey,
       onTap: (index) {
-        setState(() => _currentIndex = index);
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => pages[index]),
-        );
+        setState(() {
+          _currentIndex = index; // Correctly updates the state
+        });
       },
       items: const [
         BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),

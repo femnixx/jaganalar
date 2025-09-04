@@ -28,7 +28,7 @@ class _ActivityState extends State<Activity>
     ];
     return BottomNavigationBar(
       currentIndex: _currentIndex,
-      selectedItemColor: Colors.black,
+      selectedItemColor: Color(0xff1C6EA4),
       unselectedItemColor: Colors.grey,
       onTap: (index) {
         setState(() => _currentIndex = index);
