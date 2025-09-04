@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:jaganalar/SignIn.dart';
+import 'package:jaganalar/main_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'Supabase.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 class Signup extends StatefulWidget {
   const Signup({Key? key}) : super(key: key);
@@ -12,54 +13,174 @@ class Signup extends StatefulWidget {
 }
 
 class _SignupState extends State<Signup> {
-  final usernameController = TextEditingController();
-  final emailController = TextEditingController();
-  final passwordController = TextEditingController();
-  final confirmPasswordController = TextEditingController();
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
 
   bool _hidePassword = true;
-  bool _hidePassword2 = true;
+  bool _hideConfirmPassword = true;
+  bool _isLoading = false;
 
-  void signUp() async {
-    String username = usernameController.text;
-    String password = passwordController.text;
-    String email = emailController.text;
+  @override
+  void initState() {
+    super.initState();
 
-    if (username.isNotEmpty &&
-        password.isNotEmpty &&
-        email.isNotEmpty &&
-        password == confirmPasswordController.text) {
-      try {
-        final res = await SupabaseService.client.auth.signUp(
-          email: email,
-          password: password,
-          data: {'username': username},
-        );
-        await SupabaseService.client.from('users').insert({
-          'uuid': res.user?.id,
-          'username': username,
-          'email': email,
-          'timestamp': DateTime.now().toIso8601String(),
-        });
+    // Listen to auth state changes
+    SupabaseService.client.auth.onAuthStateChange.listen((data) {
+      final session = data.session;
+      if (session != null) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => Signin()),
+          MaterialPageRoute(builder: (_) => MyMainScreen()),
         );
-      } catch (error) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: $error')));
       }
+    });
+
+    // Check current session on start
+    WidgetsBinding.instance.addPostFrameCallback((_) => _checkSession());
+  }
+
+  Future<void> _checkSession() async {
+    final session = SupabaseService.client.auth.currentSession;
+    if (session != null) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => MyMainScreen()),
+      );
+    }
+  }
+
+  Future<void> signInWithEmail() async {
+    final email = _emailController.text;
+    final password = _passwordController.text;
+
+    if (email.isEmpty || password.isEmpty) return;
+
+    try {
+      final res = await SupabaseService.client.auth.signInWithPassword(
+        email: email,
+        password: password,
+      );
+
+      final session = SupabaseService.client.auth.currentSession;
+      if (session != null) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => MyMainScreen()),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Login gagal, coba lagi.')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: $e')));
+    }
+  }
+
+  Future<void> signInWithGoogle() async {
+    try {
+      await SupabaseService.client.auth.signInWithOAuth(
+        OAuthProvider.google,
+        redirectTo: 'io.supabase.flutter://login-callback',
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Login gagal: $e')));
     }
   }
 
   @override
   void dispose() {
-    usernameController.dispose();
-    emailController.dispose();
-    passwordController.dispose();
-    confirmPasswordController.dispose();
+    _usernameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
+  }
+
+  bool get _isFormValid {
+    return _usernameController.text.isNotEmpty &&
+        _emailController.text.isNotEmpty &&
+        _passwordController.text.isNotEmpty &&
+        _confirmPasswordController.text.isNotEmpty &&
+        _passwordController.text == _confirmPasswordController.text;
+  }
+
+  Future<void> _signUp() async {
+    if (!_isFormValid) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('All fields must be filled and passwords must match.'),
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      // Sign up with Supabase Auth
+      final res = await SupabaseService.client.auth.signUp(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+        data: {'username': _usernameController.text.trim()},
+      );
+
+      if (res.user != null) {
+        // Insert user into `users` table
+        await SupabaseService.client.from('users').insert({
+          'uuid': res.user!.id,
+          'username': _usernameController.text.trim(),
+          'email': _emailController.text.trim(),
+          'timestamp': DateTime.now().toIso8601String(),
+        });
+
+        // Navigate to SignIn page
+        if (!mounted) return;
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const Signin()),
+        );
+      }
+    } catch (error) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: $error')));
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String hint,
+    bool isPassword = false,
+    bool hidePassword = false,
+    VoidCallback? toggleHidePassword,
+  }) {
+    return TextField(
+      controller: controller,
+      obscureText: isPassword ? hidePassword : false,
+      onChanged: (_) => setState(() {}),
+      decoration: InputDecoration(
+        hintText: hint,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        suffixIcon: isPassword
+            ? IconButton(
+                icon: Icon(
+                  hidePassword ? Icons.visibility_off : Icons.visibility,
+                ),
+                onPressed: toggleHidePassword,
+              )
+            : null,
+      ),
+    );
   }
 
   @override
@@ -67,15 +188,8 @@ class _SignupState extends State<Signup> {
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
 
-    bool allValid =
-        usernameController.text.isNotEmpty &&
-        emailController.text.isNotEmpty &&
-        passwordController.text.isNotEmpty &&
-        confirmPasswordController.text.isNotEmpty &&
-        passwordController.text == confirmPasswordController.text;
-
     return Scaffold(
-      appBar: AppBar(title: Text(''), scrolledUnderElevation: 0),
+      appBar: AppBar(title: const Text(''), scrolledUnderElevation: 0),
       body: SafeArea(
         child: ListView(
           padding: EdgeInsets.symmetric(
@@ -83,6 +197,7 @@ class _SignupState extends State<Signup> {
             vertical: screenHeight * 0.03,
           ),
           children: [
+            // Logo
             Center(
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -119,101 +234,65 @@ class _SignupState extends State<Signup> {
             SizedBox(height: screenHeight * 0.03),
 
             // Form Fields
-            ...[
-              {
-                'controller': usernameController,
-                'hint': 'Nama lengkap',
-                'hide': false,
-              },
-              {'controller': emailController, 'hint': 'Email', 'hide': false},
-              {
-                'controller': passwordController,
-                'hint': 'Kata sandi',
-                'hide': true,
-              },
-              {
-                'controller': confirmPasswordController,
-                'hint': 'Konfirmasi Kata sandi',
-                'hide': true,
-              },
-            ].map((field) {
-              bool obscure = field['hide'] as bool;
-              TextEditingController controller =
-                  field['controller'] as TextEditingController;
-              return Padding(
-                padding: EdgeInsets.only(bottom: screenHeight * 0.02),
-                child: TextField(
-                  controller: controller,
-                  obscureText: obscure
-                      ? (controller == passwordController
-                            ? _hidePassword
-                            : _hidePassword2)
-                      : false,
-                  onChanged: (_) => setState(() {}),
-                  decoration: InputDecoration(
-                    hintText: field['hint'] as String,
-                    suffixIcon: obscure
-                        ? IconButton(
-                            icon: Icon(
-                              controller == passwordController
-                                  ? (_hidePassword
-                                        ? Icons.visibility_off
-                                        : Icons.visibility)
-                                  : (_hidePassword2
-                                        ? Icons.visibility_off
-                                        : Icons.visibility),
-                            ),
-                            onPressed: () {
-                              setState(() {
-                                if (controller == passwordController) {
-                                  _hidePassword = !_hidePassword;
-                                } else {
-                                  _hidePassword2 = !_hidePassword2;
-                                }
-                              });
-                            },
-                          )
-                        : null,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-              );
-            }).toList(),
+            _buildTextField(
+              controller: _usernameController,
+              hint: 'Nama lengkap',
+            ),
+            SizedBox(height: screenHeight * 0.02),
+            _buildTextField(controller: _emailController, hint: 'Email'),
+            SizedBox(height: screenHeight * 0.02),
+            _buildTextField(
+              controller: _passwordController,
+              hint: 'Kata sandi',
+              isPassword: true,
+              hidePassword: _hidePassword,
+              toggleHidePassword: () =>
+                  setState(() => _hidePassword = !_hidePassword),
+            ),
+            SizedBox(height: screenHeight * 0.02),
+            _buildTextField(
+              controller: _confirmPasswordController,
+              hint: 'Konfirmasi Kata sandi',
+              isPassword: true,
+              hidePassword: _hideConfirmPassword,
+              toggleHidePassword: () =>
+                  setState(() => _hideConfirmPassword = !_hideConfirmPassword),
+            ),
+            SizedBox(height: screenHeight * 0.03),
 
+            // Signup Button
             ElevatedButton(
-              onPressed: allValid
-                  ? signUp
-                  : () => ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('All fields must be filled')),
-                    ),
+              onPressed: _isFormValid && !_isLoading ? _signUp : null,
               style: ElevatedButton.styleFrom(
                 minimumSize: Size(double.infinity, screenHeight * 0.07),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
-                backgroundColor: allValid ? Color(0xff1C6EA4) : Colors.grey,
+                backgroundColor: _isFormValid
+                    ? const Color(0xff1C6EA4)
+                    : Colors.grey,
               ),
-              child: Text(
-                'Daftar Akun',
-                style: TextStyle(
-                  fontSize: screenWidth * 0.045,
-                  color: Color(0xff717171),
-                ),
-              ),
+              child: _isLoading
+                  ? const CircularProgressIndicator(color: Colors.white)
+                  : Text(
+                      'Daftar Akun',
+                      style: TextStyle(
+                        fontSize: screenWidth * 0.045,
+                        color: Colors.white,
+                      ),
+                    ),
             ),
             SizedBox(height: screenHeight * 0.03),
 
             // Or Divider
             Row(
               children: [
-                Expanded(child: Divider(color: Colors.grey)),
+                const Expanded(child: Divider(color: Colors.grey)),
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.02),
-                  child: Text("Atau daftar dengan"),
+                  child: const Text("Atau daftar dengan"),
                 ),
-                Expanded(child: Divider(color: Colors.grey)),
+                const Expanded(child: Divider(color: Colors.grey)),
               ],
             ),
             SizedBox(height: screenHeight * 0.03),
@@ -225,7 +304,7 @@ class _SignupState extends State<Signup> {
                 foregroundColor: Colors.black,
                 minimumSize: Size(double.infinity, screenHeight * 0.07),
               ),
-              onPressed: () {},
+              onPressed: signInWithGoogle,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -258,7 +337,7 @@ class _SignupState extends State<Signup> {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => Signin()),
+                      MaterialPageRoute(builder: (_) => const Signin()),
                     );
                   },
                   child: Text(
