@@ -36,7 +36,7 @@ class QuizSet {
       questions: data['questions'] as List<dynamic>,
       answers: data['answers'] as List<dynamic>,
       correctIndex: data['correctIndex'] as List<dynamic>,
-      points: data['poinnnts'] as int,
+      points: data['points'] as int,
     );
   }
 }

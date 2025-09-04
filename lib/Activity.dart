@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jaganalar/DailyMissionsContent.dart';
 import 'package:jaganalar/WeeklyMissionsContent.dart';
 import 'Dashboard.dart';
 import 'History.dart';
@@ -87,7 +88,7 @@ class _ActivityState extends State<Activity>
         controller: _tabController,
         children: [
           WeeklyMissionsContent(), // Moved to its own widget
-          const Center(child: Text('Content for Misi Harian')),
+          DailyMissionsContent(),
         ],
       ),
       bottomNavigationBar: _buildBottomNav(context),
