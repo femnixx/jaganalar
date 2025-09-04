@@ -33,19 +33,19 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  Session? _session;
+  User? _user;
 
   @override
   void initState() {
     super.initState();
 
-    // initial session
-    _session = Supabase.instance.client.auth.currentSession;
+    // Get persisted user session
+    _user = Supabase.instance.client.auth.currentUser;
 
-    // listen to auth state changes only once
+    // Listen for auth state changes
     Supabase.instance.client.auth.onAuthStateChange.listen((data) {
       setState(() {
-        _session = data.session;
+        _user = data.session?.user;
       });
     });
   }
@@ -58,7 +58,7 @@ class _MyAppState extends State<MyApp> {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: _session != null ? Splashscreen() : Signin(),
+      home: _user != null ? const Dashboard() : const Signin(),
     );
   }
 }
