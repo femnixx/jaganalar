@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:jaganalar/DailyMissionsContent.dart';
+import 'package:jaganalar/Supabase.dart';
 import 'package:jaganalar/WeeklyMissionsContent.dart';
 import 'Dashboard.dart';
 import 'History.dart';
@@ -60,6 +61,7 @@ class _ActivityState extends State<Activity>
 
   @override
   Widget build(BuildContext context) {
+    final userId = SupabaseService.client.auth.currentUser!.id;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Activity'),
@@ -87,7 +89,7 @@ class _ActivityState extends State<Activity>
       body: TabBarView(
         controller: _tabController,
         children: [
-          WeeklyMissionsContent(), // Moved to its own widget
+          WeeklyMissionsContent(userId: userId),
           DailyMissionsContent(),
         ],
       ),

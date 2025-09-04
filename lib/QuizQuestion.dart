@@ -6,6 +6,7 @@ import 'package:jaganalar/Dashboard.dart';
 import 'package:jaganalar/History.dart';
 import 'package:jaganalar/Supabase.dart';
 import 'package:jaganalar/main_screen.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'consts.dart';
 import 'UserModel.dart';
 import 'DiscussionPage.dart';
@@ -45,13 +46,26 @@ class QuizSet {
 }
 
 Future<List<QuizSet>> fetchQuizSets() async {
+  final userId = SupabaseService.client.auth.currentUser!.id;
+
+  final completed = await SupabaseService.client
+      .from('quiz_completed')
+      .select('quiz_id')
+      .eq('uuid', userId);
+
+  final completedIds = completed is List
+      ? completed.map((e) => e['quiz_id'] as int).toList()
+      : [];
+
   final response = await SupabaseService.client.from('questions').select('*');
 
   if (response is List) {
     return response
         .map((e) => QuizSet.fromMap(e as Map<String, dynamic>))
+        .where((quiz) => !completedIds.contains(quiz.id))
         .toList();
   }
+
   return [];
 }
 
@@ -129,7 +143,9 @@ class _QuizPageState extends State<QuizPage> {
       // Last question → async updates must run outside of setState
       await updateMissionCountAndLevelUp();
       await addHistory(widget.quizSet.id);
-      print(addHistory(widget.quizSet.id));
+      print(
+        "Quiz ${widget.quizSet.id} added to history of user ${SupabaseService.client.auth.currentUser!.id}",
+      );
       setState(() {});
       if (!mounted) return;
       // Show dialog after async operations
