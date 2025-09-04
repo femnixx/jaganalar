@@ -3,6 +3,7 @@ import 'package:dash_chat_2/dash_chat_2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gemini/flutter_gemini.dart';
 import 'package:jaganalar/Dashboard.dart';
+import 'package:jaganalar/History.dart';
 import 'package:jaganalar/Supabase.dart';
 import 'package:jaganalar/main_screen.dart';
 import 'consts.dart';
@@ -144,7 +145,7 @@ class _QuizPageState extends State<QuizPage> {
                 Navigator.pop(context);
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (_) => MyMainScreen()),
+                  MaterialPageRoute(builder: (_) => HistoryPage()),
                 );
               },
               child: const Text('OK'),
