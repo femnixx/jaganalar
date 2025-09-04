@@ -7,7 +7,6 @@ import 'package:jaganalar/Supabase.dart';
 class DailyMissionsContent extends StatelessWidget {
   DailyMissionsContent({super.key});
 
-  // Fetch the daily mission.
   final Future<Map<String, dynamic>?> dailyMissionFuture = SupabaseService
       .client
       .from('questions')
@@ -32,52 +31,103 @@ class DailyMissionsContent extends StatelessWidget {
         final int numberOfQuestions =
             (mission['questions'] as List<dynamic>?)?.length ?? 0;
 
-        return Card(
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Stack(
+        return SingleChildScrollView(
+          scrollDirection: Axis.vertical,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              Positioned.fill(
-                child: SvgPicture.asset(
-                  'assets/questionsframe.svg', // Your SVG asset
-                  fit: BoxFit.cover,
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '${mission['title'] ?? "No title"}',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text(
-                          '$numberOfQuestions Pertanyaan • ${mission['points'] ?? 0}XP',
-                          style: const TextStyle(color: Colors.white),
-                        ),
-                      ],
+              Center(
+                child: SizedBox(
+                  child: Card(
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
                     ),
-                    ElevatedButton(
-                      onPressed: () async {
-                        // Navigate to the quiz page with the single fetched mission
-                        final selectedQuiz = QuizSet.fromMap(mission);
-                        print(selectedQuiz);
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => QuizPage(quizSet: selectedQuiz),
-                          ),
-                        );
-                      },
-                      child: const Text('Mulai >>'),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(
+                        12,
+                      ), // same as weekly missions
                     ),
-                  ],
+                    child: SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.20,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(
+                          12,
+                        ), // match Card's radius
+                        child: Stack(
+                          children: [
+                            Positioned.fill(
+                              child: SvgPicture.asset(
+                                'assets/questionsframe.svg', // or any SVG for daily mission
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        '${mission['title'] ?? "No title"}',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                      Text(
+                                        '$numberOfQuestions Pertanyaan • ${mission['points'] ?? 0}XP',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.white.withOpacity(
+                                        0.1,
+                                      ),
+                                      shadowColor: Colors.transparent,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                    ),
+                                    onPressed: () {
+                                      final selectedQuiz = QuizSet.fromMap(
+                                        mission,
+                                      );
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) =>
+                                              QuizPage(quizSet: selectedQuiz),
+                                        ),
+                                      );
+                                    },
+                                    child: const Text(
+                                      'Mulai >>',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ],

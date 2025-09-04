@@ -37,44 +37,77 @@ class WeeklyMissionsContent extends StatelessWidget {
                 (mission['questions'] as List<dynamic>?)?.length ?? 0;
             return Card(
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Stack(
-                children: [
-                  Positioned.fill(
-                    child: SvgPicture.asset(
-                      'assets/questionsframe.svg',
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.all(16),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
+              child: SizedBox(
+                height: MediaQuery.of(context).size.height * 0.20,
+                child: ClipRRect(
+                  borderRadius: BorderRadiusGeometry.circular(12),
+                  child: Stack(
+                    children: [
+                      Positioned.fill(
+                        child: SvgPicture.asset(
+                          'assets/questionsframefull.svg',
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text('${mission['title'] ?? "No title"}'),
-                            Text(
-                              '$numberOfQuestions Pertanyaan • ${mission['points'] ?? 0}XP',
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '${mission['title'] ?? "No title"}',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                Text(
+                                  '$numberOfQuestions Pertanyaan • ${mission['points'] ?? 0}XP',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.normal,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.white.withOpacity(0.1),
+                                shadowColor: Colors.transparent,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              onPressed: () {
+                                final selectedQuiz = QuizSet.fromMap(mission);
+                                print(selectedQuiz);
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        QuizPage(quizSet: selectedQuiz),
+                                  ),
+                                );
+                              },
+                              child: Text(
+                                'Mulai >>',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
                             ),
                           ],
                         ),
-                        ElevatedButton(
-                          onPressed: () {
-                            final selectedQuiz = QuizSet.fromMap(mission);
-                            print(selectedQuiz);
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => QuizPage(quizSet: selectedQuiz),
-                              ),
-                            );
-                          },
-                          child: Text('Mulai >>'),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             );
           },
