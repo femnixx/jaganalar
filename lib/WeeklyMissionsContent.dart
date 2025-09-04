@@ -59,7 +59,16 @@ class WeeklyMissionsContent extends StatelessWidget {
                           ],
                         ),
                         ElevatedButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            final selectedQuiz = QuizSet.fromMap(mission);
+                            print(selectedQuiz);
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => QuizPage(quizSet: selectedQuiz),
+                              ),
+                            );
+                          },
                           child: Text('Mulai >>'),
                         ),
                       ],
