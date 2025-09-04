@@ -5,6 +5,7 @@ import 'package:jaganalar/Dashboard.dart';
 import 'package:jaganalar/Supabase.dart';
 import 'consts.dart';
 import 'UserModel.dart';
+import 'DiscussionPage.dart';
 
 final Gemini gemini = Gemini.init(apiKey: GEMINI_API_KEY);
 
@@ -310,7 +311,7 @@ If correct: explain briefly why others are wrong.
   Widget _ifCorrect() {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xff72C457).withOpacity(0.5),
+        color: const Color(0xffCCFECB).withOpacity(0.5),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Padding(
@@ -321,7 +322,7 @@ If correct: explain briefly why others are wrong.
             Text(
               'Jawaban Anda Benar',
               style: TextStyle(
-                color: Colors.white,
+                color: Color(0xff72C457),
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
               ),
@@ -329,7 +330,7 @@ If correct: explain briefly why others are wrong.
             Text(
               'Silahkan lanjut ke soal berikutnya',
               style: TextStyle(
-                color: Colors.white70,
+                color: Color(0xff969696),
                 fontSize: 14,
                 fontWeight: FontWeight.normal,
               ),
@@ -373,38 +374,76 @@ If correct: explain briefly why others are wrong.
     );
   }
 
-  // New widget to display the feedback and the "Next" button
   Widget _feedbackContainer() {
-    return Container(
-      decoration: BoxDecoration(
-        border: BoxBorder.fromLTRB(),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Display the feedback message
-          Text(
-            feedbackMessage ?? 'Loading feedback...',
-            style: const TextStyle(fontSize: 16),
+    final isLastQuestion = currentIndex == widget.quizSet.questions.length - 1;
+
+    return Column(
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.black),
           ),
-          const SizedBox(height: 16),
-          // "Next" button to proceed
-        ],
-      ),
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'Pembahasan Soal:',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 10),
+              Text(
+                feedbackMessage ?? 'Loading feedback...',
+                style: const TextStyle(fontSize: 16),
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        ),
+        SizedBox(height: 20),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            shadowColor: Colors.transparent,
+            backgroundColor: Color(0xff1C6EA4),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+          onPressed: () async {
+            if (isLastQuestion) {
+              // Quiz finished → Navigate to discussion page
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => Discussionpage()),
+              );
+            } else {
+              await nextQuestion();
+            }
+          },
+          child: Align(
+            alignment: isLastQuestion
+                ? Alignment.center
+                : Alignment.centerRight,
+            child: Text(
+              isLastQuestion ? 'Ruang Diskusi' : 'Lanjut >>',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ),
+      ],
     );
   }
-}
 
-Color getOptionColor(int index, int? selectedAnswer, int correctIndex) {
-  if (selectedAnswer == null) {
-    return Colors.white; // default before selecting
-  } else if (index == correctIndex) {
-    return Color(0xff00FF03); // green for correct answer
-  } else if (index == selectedAnswer) {
-    return Color(0xffDB5550); // red for wrong selected answer
-  } else {
-    return Colors.white; // unselected buttons remain white
+  Color getOptionColor(int index, int? selectedAnswer, int correctIndex) {
+    if (selectedAnswer == null) {
+      return Colors.white; // default before selecting
+    } else if (index == correctIndex) {
+      return Color(0xff00FF03); // green for correct answer
+    } else if (index == selectedAnswer) {
+      return Color(0xffDB5550); // red for wrong selected answer
+    } else {
+      return Colors.white; // unselected buttons remain white
+    }
   }
 }
