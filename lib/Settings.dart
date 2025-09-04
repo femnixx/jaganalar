@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:jaganalar/EditProfile.dart';
 import 'package:jaganalar/SignIn.dart';
 import 'package:jaganalar/Supabase.dart';
 
@@ -11,7 +12,6 @@ class Settings extends StatefulWidget {
 }
 
 class _SettingsState extends State<Settings> {
-  // Switch states
   bool receiveNotifications = true;
   bool weeklyMissions = false;
   bool dailyReminders = true;
@@ -20,10 +20,10 @@ class _SettingsState extends State<Settings> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Pengaturan"),
+        title: const Text("Pengaturan"),
         centerTitle: true,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios),
+          icon: const Icon(Icons.arrow_back_ios),
           onPressed: () => Navigator.pop(context),
         ),
         foregroundColor: Colors.black,
@@ -35,56 +35,67 @@ class _SettingsState extends State<Settings> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Account Section
-              Text(
+              // Akun Section
+              const Text(
                 'Akun',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
-              SizedBox(height: 6),
+              const SizedBox(height: 6),
               SettingsBuilder(
-                items1: 'Preferensi',
-                items2: 'Edit Profil',
-                items3: 'Ganti Password',
+                items: [
+                  SettingsItem(title: 'Preferensi'),
+                  SettingsItem(title: 'Edit Profil', page: Editprofile()),
+                  SettingsItem(title: 'Ganti Password'),
+                ],
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
 
-              // Notifications Section
-              Text(
+              // Notifikasi Section
+              const Text(
                 'Notifikasi',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
-              SizedBox(height: 6),
+              const SizedBox(height: 6),
               SettingsBuilder(
-                items1: 'Terima Notifikasi',
-                items2: 'Misi Mingguan Terbaru',
-                items3: 'Pengingat Misi Harian',
-                switch1: receiveNotifications,
-                switch2: weeklyMissions,
-                switch3: dailyReminders,
-                onSwitch1Changed: (val) =>
-                    setState(() => receiveNotifications = val),
-                onSwitch2Changed: (val) => setState(() => weeklyMissions = val),
-                onSwitch3Changed: (val) => setState(() => dailyReminders = val),
+                items: [
+                  SettingsItem(
+                    title: 'Terima Notifikasi',
+                    switchValue: receiveNotifications,
+                    onSwitchChanged: (val) =>
+                        setState(() => receiveNotifications = val),
+                  ),
+                  SettingsItem(
+                    title: 'Misi Mingguan Terbaru',
+                    switchValue: weeklyMissions,
+                    onSwitchChanged: (val) =>
+                        setState(() => weeklyMissions = val),
+                  ),
+                  SettingsItem(
+                    title: 'Pengingat Misi Harian',
+                    switchValue: dailyReminders,
+                    onSwitchChanged: (val) =>
+                        setState(() => dailyReminders = val),
+                  ),
+                ],
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
 
-              // Premium Section
-              Text(
+              // Langganan Section
+              const Text(
                 'Langganan',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
-              SizedBox(height: 6),
+              const SizedBox(height: 6),
               Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12),
                   color: Colors.blue[50],
                 ),
-                padding: EdgeInsets.all(16),
+                padding: const EdgeInsets.all(16),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // Text content
-                    Column(
+                    const Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
@@ -105,17 +116,16 @@ class _SettingsState extends State<Settings> {
                         ),
                       ],
                     ),
-                    // Button
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(0xff1C6EA4),
+                        backgroundColor: const Color(0xff1C6EA4),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        minimumSize: Size(120, 50),
+                        minimumSize: const Size(120, 50),
                       ),
                       onPressed: () {},
-                      child: Text(
+                      child: const Text(
                         'Selengkapnya',
                         style: TextStyle(
                           color: Colors.white,
@@ -126,20 +136,22 @@ class _SettingsState extends State<Settings> {
                   ],
                 ),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
 
-              // Others Section
-              Text(
+              // Lainnya Section
+              const Text(
                 'Lainnya',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
-              SizedBox(height: 6),
+              const SizedBox(height: 6),
               SettingsBuilder(
-                items1: 'Pusat Bantuan',
-                items2: 'Kebijakan Privasi',
-                items3: 'Ketentuan',
+                items: [
+                  SettingsItem(title: 'Pusat Bantuan'),
+                  SettingsItem(title: 'Kebijakan Privasi'),
+                  SettingsItem(title: 'Ketentuan'),
+                ],
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
 
               // Sign Out Button
               Center(
@@ -148,10 +160,10 @@ class _SettingsState extends State<Settings> {
                     await SupabaseService.client.auth.signOut();
                     Navigator.pushReplacement(
                       context,
-                      MaterialPageRoute(builder: (context) => Signin()),
+                      MaterialPageRoute(builder: (context) => const Signin()),
                     );
                   },
-                  child: Text('Sign Out'),
+                  child: const Text('Sign Out'),
                 ),
               ),
             ],
@@ -162,39 +174,25 @@ class _SettingsState extends State<Settings> {
   }
 }
 
-class SettingsBuilder extends StatelessWidget {
-  const SettingsBuilder({
-    super.key,
-    required this.items1,
-    required this.items2,
-    required this.items3,
-    this.switch1,
-    this.switch2,
-    this.switch3,
-    this.onSwitch1Changed,
-    this.onSwitch2Changed,
-    this.onSwitch3Changed,
+// Data model for settings items
+class SettingsItem {
+  final String title;
+  final bool? switchValue;
+  final ValueChanged<bool>? onSwitchChanged;
+  final Widget? page;
+
+  SettingsItem({
+    required this.title,
+    this.switchValue,
+    this.onSwitchChanged,
+    this.page,
   });
+}
 
-  final String items1, items2, items3;
-  final bool? switch1, switch2, switch3;
-  final ValueChanged<bool>? onSwitch1Changed;
-  final ValueChanged<bool>? onSwitch2Changed;
-  final ValueChanged<bool>? onSwitch3Changed;
+class SettingsBuilder extends StatelessWidget {
+  const SettingsBuilder({super.key, required this.items});
 
-  Widget _buildTile(
-    String title,
-    bool? switchValue,
-    ValueChanged<bool>? onChanged,
-  ) {
-    return ListTile(
-      title: Text(title),
-      trailing: switchValue != null
-          ? Switch(value: switchValue, onChanged: onChanged)
-          : Icon(Icons.arrow_forward_ios, size: 18),
-      onTap: () {},
-    );
-  }
+  final List<SettingsItem> items;
 
   @override
   Widget build(BuildContext context) {
@@ -202,16 +200,35 @@ class SettingsBuilder extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Color(0xff8F9799)),
+        border: Border.all(color: const Color(0xff8F9799)),
       ),
-      child: Column(
-        children: [
-          _buildTile(items1, switch1, onSwitch1Changed),
-          Divider(indent: 16, endIndent: 16, color: Color(0xff8F9799)),
-          _buildTile(items2, switch2, onSwitch2Changed),
-          Divider(indent: 16, endIndent: 16, color: Color(0xff8F9799)),
-          _buildTile(items3, switch3, onSwitch3Changed),
-        ],
+      child: ListView.separated(
+        shrinkWrap: true,
+        physics:
+            const NeverScrollableScrollPhysics(), // To prevent scrolling inside the list
+        itemCount: items.length,
+        itemBuilder: (context, index) {
+          final item = items[index];
+          return ListTile(
+            title: Text(item.title),
+            trailing: item.switchValue != null
+                ? Switch(
+                    value: item.switchValue!,
+                    onChanged: item.onSwitchChanged,
+                  )
+                : const Icon(Icons.arrow_forward_ios),
+            onTap: () {
+              if (item.page != null) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => item.page!),
+                );
+              }
+            },
+          );
+        },
+        separatorBuilder: (context, index) =>
+            const Divider(indent: 16, endIndent: 16, color: Color(0xff8F9799)),
       ),
     );
   }

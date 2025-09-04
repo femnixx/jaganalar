@@ -1,5 +1,5 @@
 class UserModel {
-  final String? username, email, avatarUrl;
+  final String? username, email, avatarUrl, phone;
   final int? missions, medals, streak, level, xp;
 
   UserModel({
@@ -11,6 +11,7 @@ class UserModel {
     this.level,
     this.xp,
     this.avatarUrl,
+    this.phone,
   });
 
   factory UserModel.fromMap(Map<String, dynamic> map) {
