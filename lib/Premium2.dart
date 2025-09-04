@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:jaganalar/Pembayaran.dart';
 
 class Premium2 extends StatefulWidget {
   const Premium2({super.key});
@@ -12,7 +13,6 @@ class _Premium2State extends State<Premium2> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // It's good practice to set a background color
       backgroundColor: Colors.white,
       body: SafeArea(
         child: SingleChildScrollView(
@@ -142,6 +142,10 @@ class _Premium2State extends State<Premium2> {
                   ),
                   onPressed: () {
                     // do whatever
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => Pembayaran()),
+                    );
                   },
                   child: Text(
                     'Lanjutkan - Rp.50.000 Total',

@@ -10,6 +10,8 @@ class Premium extends StatefulWidget {
 }
 
 class _PremiumState extends State<Premium> {
+  bool _isPremium = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
