@@ -177,24 +177,74 @@ If correct: explain briefly why others are wrong.
     final question = widget.quizSet.questions[currentIndex];
     final options = List<String>.from(widget.quizSet.answers[currentIndex]);
     final correctIndex = widget.quizSet.correctIndex[currentIndex];
-
+    final progress = (currentIndex + 1) / widget.quizSet.questions.length;
+    final progressPercentage = (progress * 100).toStringAsFixed(0);
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          "Question ${currentIndex + 1}/${widget.quizSet.questions.length}",
-        ),
-      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
-              question,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            Padding(
+              padding: const EdgeInsets.only(top: 32),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  IconButton(
+                    onPressed: () {
+                      // implemenntn connfirm to go out or whatever but will not get pointns
+                    },
+                    icon: Icon(Icons.arrow_back_ios),
+                  ),
+                  Text(
+                    question,
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+                  ),
+                  IconButton(
+                    onPressed: () {
+                      // idk what to implement here
+                    },
+                    icon: Icon(Icons.more_vert),
+                  ),
+                ],
+              ),
+            ),
+            Divider(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Pertanyaan ${currentIndex + 1} dari ${widget.quizSet.questions.length}',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  '$progressPercentage%',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 10),
+
+            ClipRRect(
+              borderRadius: BorderRadiusGeometry.circular(12),
+              child: LinearProgressIndicator(
+                value: progress,
+                color: Colors.black,
+                valueColor: AlwaysStoppedAnimation(Colors.pink),
+                minHeight: 12,
+              ),
             ),
             const SizedBox(height: 20),
-
+            Text(
+              question,
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+            ),
             // Generate answer buttons
             ...List.generate(options.length, (index) {
               return Padding(
@@ -234,9 +284,19 @@ If correct: explain briefly why others are wrong.
                     );
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: selectedAnswer == index
-                        ? Colors.orange
-                        : Colors.blue,
+                    shadowColor: Colors.transparent,
+                    side: BorderSide(color: Color(0xff9396A0)),
+                    backgroundColor:
+                        selectedAnswer == index &&
+                            selectedAnswer == correctIndex
+                        ? const Color(0xff72C457)
+                        : selectedAnswer == index &&
+                              selectedAnswer != correctIndex
+                        ? Colors.red
+                        : Colors.transparent,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadiusGeometry.circular(8),
+                    ),
                   ),
                   child: Text(options[index]),
                 ),
