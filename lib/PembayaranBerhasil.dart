@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jaganalar/HistoryPembayaran.dart';
 
 class PembayaranSuccess extends StatelessWidget {
   const PembayaranSuccess({super.key});
@@ -82,7 +83,14 @@ class PembayaranSuccess extends StatelessWidget {
                     ),
                     Spacer(),
                     ElevatedButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => Historypembayaran(),
+                          ),
+                        );
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Color(0xff1C6EA4),
                         minimumSize: Size(double.infinity, 55),
