@@ -437,13 +437,17 @@ If correct: explain briefly why others are wrong.
 
   Color getOptionColor(int index, int? selectedAnswer, int correctIndex) {
     if (selectedAnswer == null) {
-      return Colors.white; // default before selecting
-    } else if (index == correctIndex) {
-      return Color(0xff00FF03); // green for correct answer
-    } else if (index == selectedAnswer) {
-      return Color(0xffDB5550); // red for wrong selected answer
+      // No answer selected yet
+      return Colors.white;
+    } else if (selectedAnswer == correctIndex && index == selectedAnswer) {
+      // Correct answer selected
+      return Color(0xff00FF03); // green
+    } else if (selectedAnswer != correctIndex && index == selectedAnswer) {
+      // Wrong answer selected
+      return Color(0xffDB5550); // red
     } else {
-      return Colors.white; // unselected buttons remain white
+      // All other buttons stay white
+      return Colors.white;
     }
   }
 }
