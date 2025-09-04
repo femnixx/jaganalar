@@ -400,51 +400,51 @@ class _ProfileState extends State<Profile> {
           },
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        selectedItemColor: Colors.black,
-        unselectedItemColor: Colors.grey,
-        type: BottomNavigationBarType.fixed,
-        selectedLabelStyle: const TextStyle(fontSize: 14),
-        unselectedLabelStyle: const TextStyle(fontSize: 14),
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-          switch (index) {
-            case 0:
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const Dashboard()),
-              );
-              break;
-            case 1:
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => Activity()),
-              );
-              break;
-            case 2:
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => History()),
-              );
-              break;
-            case 3:
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => Profile()),
-              );
-              break;
-          }
-        },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.games), label: 'Activity'),
-          BottomNavigationBarItem(icon: Icon(Icons.history), label: 'History'),
-          BottomNavigationBarItem(icon: Icon(Icons.person_2), label: 'Profile'),
-        ],
-      ),
+      // bottomNavigationBar: BottomNavigationBar(
+      //   selectedItemColor: Colors.black,
+      //   unselectedItemColor: Colors.grey,
+      //   type: BottomNavigationBarType.fixed,
+      //   selectedLabelStyle: const TextStyle(fontSize: 14),
+      //   unselectedLabelStyle: const TextStyle(fontSize: 14),
+      //   currentIndex: _currentIndex,
+      //   onTap: (index) {
+      //     setState(() {
+      //       _currentIndex = index;
+      //     });
+      //     switch (index) {
+      //       case 0:
+      //         Navigator.push(
+      //           context,
+      //           MaterialPageRoute(builder: (_) => const Dashboard()),
+      //         );
+      //         break;
+      //       case 1:
+      //         Navigator.push(
+      //           context,
+      //           MaterialPageRoute(builder: (_) => Activity()),
+      //         );
+      //         break;
+      //       case 2:
+      //         Navigator.push(
+      //           context,
+      //           MaterialPageRoute(builder: (_) => History()),
+      //         );
+      //         break;
+      //       case 3:
+      //         Navigator.push(
+      //           context,
+      //           MaterialPageRoute(builder: (_) => Profile()),
+      //         );
+      //         break;
+      //     }
+      //   },
+      //   items: const [
+      //     BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+      //     BottomNavigationBarItem(icon: Icon(Icons.games), label: 'Activity'),
+      //     BottomNavigationBarItem(icon: Icon(Icons.history), label: 'History'),
+      //     BottomNavigationBarItem(icon: Icon(Icons.person_2), label: 'Profile'),
+      //   ],
+      // ),
     );
   }
 }

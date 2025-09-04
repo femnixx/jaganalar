@@ -94,15 +94,24 @@ Widget _buildTiers(int price, String date, int transactionID, bool success) {
               Column(children: [Text('ID Transaksi'), Text('$transactionID')]),
               Container(
                 decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                    color: success ? Color(0xff58A700) : Color(0xffFF4B4B),
+                    color: success
+                        ? Color(0xff58A700).withOpacity(0.4)
+                        : Color(0xffFF4B4B).withOpacity(0.4),
                   ),
-                  color: success ? Color(0xffD7FFB8) : Color(0xffFF9696),
+                  color: success
+                      ? Color(0xffD7FFB8).withOpacity(0.5)
+                      : Color(0xffFF9696).withOpacity(0.5),
                 ),
-                child: Text(
-                  (success ? 'Sukses' : 'Gagal'),
-                  style: TextStyle(
-                    color: success ? Color(0xff58A700) : Color(0xffFF4B4B),
+                child: Padding(
+                  padding: const EdgeInsets.all(6.0),
+                  child: Text(
+                    (success ? 'Sukses' : 'Gagal'),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: success ? Color(0xff58A700) : Color(0xffFF4B4B),
+                    ),
                   ),
                 ),
               ),

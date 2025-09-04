@@ -91,7 +91,7 @@ class _ActivityState extends State<Activity>
           DailyMissionsContent(),
         ],
       ),
-      bottomNavigationBar: _buildBottomNav(context),
+      // bottomNavigationBar: _buildBottomNav(context),
     );
   }
 }

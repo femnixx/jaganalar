@@ -178,7 +178,7 @@ class _DashboardState extends State<Dashboard> {
             },
           ),
         ),
-        bottomNavigationBar: _buildBottomNav(context),
+        // bottomNavigationBar: _buildBottomNav(context),
       ),
     );
   }
