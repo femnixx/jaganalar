@@ -13,8 +13,7 @@ final Gemini gemini = Gemini.init(apiKey: GEMINI_API_KEY);
 class QuizSet {
   final int id;
   final String title;
-  final List<dynamic>
-  questions; // Or a more specific type if you have a Question model
+  final List<dynamic> questions;
   final List<dynamic> answers;
   final List<dynamic> correctIndex;
   final int points;
@@ -28,7 +27,6 @@ class QuizSet {
     required this.points,
   });
 
-  // ✅ This is the factory constructor that fixes your error
   factory QuizSet.fromMap(Map<String, dynamic> data) {
     return QuizSet(
       id: data['id'] as int,
@@ -77,6 +75,7 @@ class QuizPage extends StatefulWidget {
 class _QuizPageState extends State<QuizPage> {
   int currentIndex = 0;
   int? selectedAnswer;
+  String? feedbackMessage; // New state variable for feedback
 
   Future<void> updateMissionCountAndLevelUp() async {
     final user = await fetchUser();
@@ -101,6 +100,7 @@ class _QuizPageState extends State<QuizPage> {
   Future<void> nextQuestion() async {
     setState(() {
       selectedAnswer = null;
+      feedbackMessage = null; // Clear feedback for the next question
       if (currentIndex < widget.quizSet.questions.length - 1) {
         currentIndex++;
       } else {
@@ -128,18 +128,21 @@ class _QuizPageState extends State<QuizPage> {
     });
   }
 
-  Future<String> getQuizFeedback({
+  Future<void> getAndSetFeedback({
     required String question,
     required List<String> options,
     required int correctIndex,
     required int userAnswerIndex,
   }) async {
+    setState(() {
+      feedbackMessage = "Loading feedback...";
+    });
+
     try {
-      await Future.delayed(const Duration(seconds: 3));
       // Sanitize input to avoid Gemini errors
       String safeQuestion = question.replaceAll(RegExp(r'[^\w\s\+\-\*/]'), '');
       List<String> safeOptions = options
-          .map((e) => e.toString().replaceAll(RegExp(r'[^\w\s\+\-\*/]'), ''))
+          .map((e) => e.replaceAll(RegExp(r'[^\w\s\+\-\*/]'), ''))
           .toList();
 
       String formattedOptions = safeOptions
@@ -161,14 +164,15 @@ If wrong: explain shortly why and give the correct answer.
 If correct: explain briefly why others are wrong.
 """;
 
-      // Debug log to check what we send to Gemini
-      print("Gemini Prompt:\n$prompt");
-
       final response = await Gemini.instance.prompt(parts: [Part.text(prompt)]);
-      return response?.output ?? "No feedback available.";
+      setState(() {
+        feedbackMessage = response?.output ?? "No feedback available.";
+      });
     } catch (e) {
       print("Gemini Error: $e");
-      return "Error getting feedback: $e";
+      setState(() {
+        feedbackMessage = "Error getting feedback.";
+      });
     }
   }
 
@@ -176,9 +180,10 @@ If correct: explain briefly why others are wrong.
   Widget build(BuildContext context) {
     final question = widget.quizSet.questions[currentIndex];
     final options = List<String>.from(widget.quizSet.answers[currentIndex]);
-    final correctIndex = widget.quizSet.correctIndex[currentIndex];
+    final correctIndex = widget.quizSet.correctIndex[currentIndex] as int;
     final progress = (currentIndex + 1) / widget.quizSet.questions.length;
     final progressPercentage = (progress * 100).toStringAsFixed(0);
+
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.all(16),
@@ -192,7 +197,7 @@ If correct: explain briefly why others are wrong.
                 children: [
                   IconButton(
                     onPressed: () {
-                      // implemenntn connfirm to go out or whatever but will not get pointns
+                      // implement confirm to go out or whatever but will not get points
                     },
                     icon: Icon(Icons.arrow_back_ios),
                   ),
@@ -230,9 +235,8 @@ If correct: explain briefly why others are wrong.
               ],
             ),
             SizedBox(height: 10),
-
             ClipRRect(
-              borderRadius: BorderRadiusGeometry.circular(12),
+              borderRadius: BorderRadius.circular(12),
               child: LinearProgressIndicator(
                 value: progress,
                 color: Colors.black,
@@ -251,60 +255,156 @@ If correct: explain briefly why others are wrong.
                 padding: const EdgeInsets.symmetric(vertical: 4),
                 child: ElevatedButton(
                   onPressed: () async {
+                    if (selectedAnswer != null)
+                      return; // prevent multiple clicks
+
                     setState(() {
                       selectedAnswer = index;
                     });
 
-                    // Try Gemini feedback, fallback to basic message if fails
-                    String feedback = await getQuizFeedback(
+                    await getAndSetFeedback(
                       question: question,
                       options: options,
                       correctIndex: correctIndex,
                       userAnswerIndex: index,
                     );
-
-                    if (!context.mounted) return;
-
-                    // Show feedback dialog
-                    await showDialog(
-                      context: context,
-                      builder: (_) => AlertDialog(
-                        title: const Text("Feedback"),
-                        content: Text(feedback),
-                        actions: [
-                          TextButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                              nextQuestion(); // Always moves forward
-                            },
-                            child: const Text("Next"),
-                          ),
-                        ],
-                      ),
-                    );
                   },
                   style: ElevatedButton.styleFrom(
-                    shadowColor: Colors.transparent,
                     side: BorderSide(color: Color(0xff9396A0)),
-                    backgroundColor:
-                        selectedAnswer == index &&
-                            selectedAnswer == correctIndex
-                        ? const Color(0xff72C457)
-                        : selectedAnswer == index &&
-                              selectedAnswer != correctIndex
-                        ? Colors.red
-                        : Colors.transparent,
+                    shadowColor: Colors.transparent,
+                    backgroundColor: getOptionColor(
+                      index,
+                      selectedAnswer,
+                      correctIndex,
+                    ),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadiusGeometry.circular(8),
+                      borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  child: Text(options[index]),
+                  child: Text(
+                    options[index],
+                    style: TextStyle(
+                      color:
+                          (selectedAnswer != null &&
+                              (index == selectedAnswer ||
+                                  index == correctIndex))
+                          ? Colors.white
+                          : Colors.black,
+                    ),
+                  ),
                 ),
               );
             }),
+            if (selectedAnswer != null) ...[
+              const SizedBox(height: 20),
+              selectedAnswer == correctIndex ? _ifCorrect() : _ifWrong(),
+              const SizedBox(height: 20),
+              _feedbackContainer(),
+            ],
           ],
         ),
       ),
     );
+  }
+
+  Widget _ifCorrect() {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xff72C457).withOpacity(0.5),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(
+              'Jawaban Anda Benar',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            Text(
+              'Silahkan lanjut ke soal berikutnya',
+              style: TextStyle(
+                color: Colors.white70,
+                fontSize: 14,
+                fontWeight: FontWeight.normal,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _ifWrong() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.red.withOpacity(0.5),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(
+              'Jawaban Anda Salah',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            Text(
+              'Silahkan lanjut ke soal berikutnya!',
+              style: TextStyle(
+                color: Colors.white70,
+                fontSize: 14,
+                fontWeight: FontWeight.normal,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // New widget to display the feedback and the "Next" button
+  Widget _feedbackContainer() {
+    return Container(
+      decoration: BoxDecoration(
+        border: BoxBorder.fromLTRB(),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Display the feedback message
+          Text(
+            feedbackMessage ?? 'Loading feedback...',
+            style: const TextStyle(fontSize: 16),
+          ),
+          const SizedBox(height: 16),
+          // "Next" button to proceed
+        ],
+      ),
+    );
+  }
+}
+
+Color getOptionColor(int index, int? selectedAnswer, int correctIndex) {
+  if (selectedAnswer == null) {
+    return Colors.white; // default before selecting
+  } else if (index == correctIndex) {
+    return Color(0xff00FF03); // green for correct answer
+  } else if (index == selectedAnswer) {
+    return Color(0xffDB5550); // red for wrong selected answer
+  } else {
+    return Colors.white; // unselected buttons remain white
   }
 }
