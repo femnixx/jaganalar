@@ -33,9 +33,9 @@ class Historypembayaran extends StatelessWidget {
                 textAlign: TextAlign.justify,
               ),
               SizedBox(height: 15),
-              _buildTiers(200000, '18 Sep 2025', 565745433, false),
+              _buildTiers(200, '18 Sep 2025', 565745433, false),
               SizedBox(height: 10),
-              _buildTiers(200000, '18 Sep 2025', 565745434, true),
+              _buildTiers(200, '18 Sep 2025', 565745434, true),
             ],
           ),
         ),
@@ -80,7 +80,30 @@ Widget _buildTiers(int price, String date, int transactionID, bool success) {
                   SizedBox(width: 15),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [Text('Tier 3'), Text('Rp $price'), Text(date)],
+                    children: [
+                      Text(
+                        'Tier 3',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        'Rp $price.000',
+                        style: TextStyle(
+                          color: Color(0xff1C6EA4),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Text(
+                        date,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Color(0xff717171),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -91,7 +114,16 @@ Widget _buildTiers(int price, String date, int transactionID, bool success) {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(children: [Text('ID Transaksi'), Text('$transactionID')]),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'ID Transaksi',
+                    style: TextStyle(color: Color(0xff717171), fontSize: 12),
+                  ),
+                  Text('$transactionID', style: TextStyle(fontSize: 16)),
+                ],
+              ),
               Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
