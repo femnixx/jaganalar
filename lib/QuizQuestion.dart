@@ -17,6 +17,7 @@ class QuizSet {
   questions; // Or a more specific type if you have a Question model
   final List<dynamic> answers;
   final List<dynamic> correctIndex;
+  final int points;
 
   QuizSet({
     required this.id,
@@ -24,6 +25,7 @@ class QuizSet {
     required this.questions,
     required this.answers,
     required this.correctIndex,
+    required this.points,
   });
 
   // ✅ This is the factory constructor that fixes your error
@@ -34,11 +36,12 @@ class QuizSet {
       questions: data['questions'] as List<dynamic>,
       answers: data['answers'] as List<dynamic>,
       correctIndex: data['correctIndex'] as List<dynamic>,
+      points: data['poinnnts'] as int,
     );
   }
 }
 
-Future<List<QuizSet>> fetchQuizSets(missionId) async {
+Future<List<QuizSet>> fetchQuizSets() async {
   final response = await SupabaseService.client.from('questions').select('*');
 
   if (response is List) {

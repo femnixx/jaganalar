@@ -387,7 +387,7 @@ class _DashboardState extends State<Dashboard> {
   ) {
     return Container(
       height: 120,
-      width: 120,
+      width: MediaQuery.of(context).size.width * 0.30,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
@@ -540,7 +540,7 @@ class _DashboardState extends State<Dashboard> {
                             ),
                           ),
                           onPressed: () async {
-                            final questions = await fetchQuizSets(context);
+                            final questions = await fetchQuizSets();
                             if (questions.isEmpty) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
@@ -675,7 +675,7 @@ class _DashboardState extends State<Dashboard> {
                             ),
                           ),
                           onPressed: () async {
-                            final questions = await fetchQuizSets(4);
+                            final questions = await fetchQuizSets();
                             if (questions.isEmpty) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:jaganalar/QuizQuestion.dart'; // Make sure this file exists and is correct
 import 'package:jaganalar/Supabase.dart'; // Assuming this file sets up the Supabase client
@@ -34,40 +35,15 @@ class WeeklyMissionsContent extends StatelessWidget {
             final mission = missions[index];
             return Card(
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: ListTile(
-                title: Text(mission['title'] ?? 'No title'),
-                subtitle: Text(mission['description'] ?? 'No description'),
-                trailing: Text(
-                  mission['points']?.toString() ?? '0',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                onTap: () async {
-                  final quizSets = await SupabaseService.client
-                      .from('questions')
-                      .select('*')
-                      .eq('id', mission['id'].toString());
-
-                  if (quizSets.isEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          "No quiz questions available for this mission.",
-                        ),
-                      ),
-                    );
-                    return;
-                  }
-
-                  // ✅ Here's the fix: convert the map to a QuizSet object
-                  final selectedQuiz = QuizSet.fromMap(quizSets.first);
-
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => QuizPage(quizSet: selectedQuiz),
+              child: Stack(
+                children: [
+                  Container(
+                    child: Positioned.fill(
+                      child: SvgPicture.asset('assets/questionsframe.svg'),
                     ),
-                  );
-                },
+                  ),
+                  Text('Hi there'),
+                ],
               ),
             );
           },
