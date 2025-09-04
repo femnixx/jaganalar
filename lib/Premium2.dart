@@ -131,6 +131,7 @@ class _Premium2State extends State<Premium2> {
                 ),
                 SizedBox(height: 20),
                 _buildFeatureBox(),
+                SizedBox(height: 20),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     shape: RoundedRectangleBorder(
