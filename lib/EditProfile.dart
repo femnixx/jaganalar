@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:jaganalar/Dashboard.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as p;
@@ -161,6 +162,10 @@ class _EditprofileState extends State<Editprofile> {
           streak: user?.streak,
           level: user?.level,
           xp: user?.xp,
+        );
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => Dashboard()),
         );
       });
     } catch (e) {
