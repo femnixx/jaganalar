@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:jaganalar/PembayaranBerhasil.dart';
 
 class Pembayaran extends StatefulWidget {
   const Pembayaran({super.key});
@@ -138,7 +139,14 @@ class _PembayaranState extends State<Pembayaran> {
                   ),
                   backgroundColor: Color(0xff1C6EA4),
                 ),
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => PembayaranSuccess(),
+                    ),
+                  );
+                },
                 child: Text(
                   'Bayar Sekarang',
                   style: TextStyle(
