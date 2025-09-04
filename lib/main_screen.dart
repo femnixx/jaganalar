@@ -21,7 +21,7 @@ class _MyMainScreenState extends State<MyMainScreen> {
         children: [
           Visibility(visible: _currentIndex == 0, child: const Dashboard()),
           Visibility(visible: _currentIndex == 1, child: const Activity()),
-          Visibility(visible: _currentIndex == 2, child: const History()),
+          Visibility(visible: _currentIndex == 2, child: const HistoryPage()),
           Visibility(visible: _currentIndex == 3, child: const Profile()),
         ],
       ),

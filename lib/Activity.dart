@@ -23,7 +23,7 @@ class _ActivityState extends State<Activity>
     final pages = [
       const Dashboard(),
       const Activity(),
-      const History(),
+      const HistoryPage(),
       const Profile(),
     ];
     return BottomNavigationBar(

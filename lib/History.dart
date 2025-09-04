@@ -1,63 +1,88 @@
 import 'package:flutter/material.dart';
-import 'Dashboard.dart';
-import 'Activity.dart';
-import 'Profile.dart';
+import 'Supabase.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-class History extends StatefulWidget {
-  const History({super.key});
+class HistoryPage extends StatelessWidget {
+  const HistoryPage({super.key});
 
-  @override
-  State<History> createState() => _HistoryState();
-}
+  // Async function to fetch completed quizzes
+  Future<List<Map<String, dynamic>>> fetchCompletedQuizzes() async {
+    final currentUserId = SupabaseService.client.auth.currentUser!.id;
 
-class _HistoryState extends State<History> {
-  Widget _buildBottomNav(BuildContext context) {
-    int _currentIndex = 2;
+    final response = await SupabaseService.client
+        .from('quiz_completed')
+        .select('quiz_id')
+        .eq('uuid', currentUserId);
 
-    final pages = [
-      const Dashboard(),
-      const Activity(),
-      const History(),
-      const Profile(),
-    ];
-    return BottomNavigationBar(
-      currentIndex: _currentIndex,
-      selectedItemColor: Color(0xff1C6EA4),
-      unselectedItemColor: Colors.grey,
-      onTap: (index) {
-        setState(() => _currentIndex = index);
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => pages[index]),
-        );
-      },
-      items: const [
-        BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-        BottomNavigationBarItem(icon: Icon(Icons.games), label: 'Activity'),
-        BottomNavigationBarItem(icon: Icon(Icons.history), label: 'History'),
-        BottomNavigationBarItem(icon: Icon(Icons.person_2), label: 'Profile'),
-      ],
-    );
+    if (response is List) {
+      // Map each row to a Future<Map> and wait for all
+      final futures = response.map<Future<Map<String, dynamic>>>((row) async {
+        final title = await getQuizTitleById(row['quiz_id'] as int);
+        return {'title': title, 'completedAt': row['timestamp']};
+      }).toList();
+
+      return await Future.wait(futures);
+    }
+
+    return [];
+  }
+
+  Future<String> getQuizTitleById(int quizId) async {
+    final response = await SupabaseService.client
+        .from('questions')
+        .select('title')
+        .eq('id', quizId)
+        .single(); // fetch a single row
+
+    if (response != null && response['title'] != null) {
+      return response['title'] as String;
+    }
+    return 'Quiz $quizId';
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: Text('Click me to go back'),
-              ),
-            ],
-          ),
-        ],
+      appBar: AppBar(title: const Text('History')),
+      body: FutureBuilder<List<Map<String, dynamic>>>(
+        future: fetchCompletedQuizzes(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
+
+          final completedQuizzes = snapshot.data ?? [];
+
+          if (completedQuizzes.isEmpty) {
+            return const Center(
+              child: Text('You have not completed any quizzes yet.'),
+            );
+          }
+
+          return ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: completedQuizzes.length,
+            itemBuilder: (context, index) {
+              final quiz = completedQuizzes[index];
+              return Card(
+                margin: const EdgeInsets.symmetric(vertical: 8),
+                child: ListTile(
+                  leading: const Icon(Icons.check_circle, color: Colors.green),
+                  title: Text(quiz['title']),
+                  subtitle: Text('Completed at: ${quiz['completedAt']}'),
+                  trailing: const Icon(Icons.arrow_forward_ios),
+                  onTap: () {
+                    // Optional: navigate to review page
+                  },
+                ),
+              );
+            },
+          );
+        },
       ),
     );
   }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:jaganalar/main_screen.dart';
 import 'package:jaganalar/SignIn.dart';
+import 'package:flutter_gemini/flutter_gemini.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -13,7 +14,9 @@ Future<void> main() async {
   Supabase.instance.client.auth.onAuthStateChange.listen((data) {
     print('Auth state changed: $data');
   });
+  const String GEMINI_API_KEY = "AIzaSyAdP9SH8iyyGvPXa-zMUUEX4HCRZWUfFhU";
 
+  await Gemini.init(apiKey: GEMINI_API_KEY);
   runApp(const MyApp());
 }
 
