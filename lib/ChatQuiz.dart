@@ -21,12 +21,12 @@ class _QuizDiscussionPageState extends State<QuizDiscussionPage> {
     _loadMessages();
   }
 
-  // Fetch messages for this quiz
+  // Fetch messages safely
   Future<void> _loadMessages() async {
     try {
       final response = await SupabaseService.client
           .from('quiz_discussions')
-          .select('*')
+          .select('message, uuid')
           .eq('quiz_id', widget.quizId)
           .order('created_at', ascending: true);
 
@@ -35,12 +35,30 @@ class _QuizDiscussionPageState extends State<QuizDiscussionPage> {
       }
 
       final userId = SupabaseService.client.auth.currentUser!.id;
-      hasSentMessage = messages.any((m) => m['user_id'] == userId);
+      hasSentMessage = messages.any((m) => m['uuid'] == userId);
 
       setState(() {});
     } catch (e) {
       print("Error loading messages: $e");
     }
+  }
+
+  // Get username for a uuid
+  Future<String> _getUsername(String uuid) async {
+    try {
+      final response = await SupabaseService.client
+          .from('users')
+          .select('username')
+          .eq('uuid', uuid)
+          .single();
+
+      if (response != null && response['username'] != null) {
+        return response['username'] as String;
+      }
+    } catch (e) {
+      print("Error fetching username: $e");
+    }
+    return 'Unknown';
   }
 
   // Send a message (one per user per quiz)
@@ -52,7 +70,7 @@ class _QuizDiscussionPageState extends State<QuizDiscussionPage> {
     try {
       await SupabaseService.client.from('quiz_discussions').insert({
         'quiz_id': widget.quizId,
-        'user_id': userId,
+        'uuid': userId,
         'message': text,
       });
       _controller.clear();
@@ -75,11 +93,15 @@ class _QuizDiscussionPageState extends State<QuizDiscussionPage> {
                     itemCount: messages.length,
                     itemBuilder: (_, i) {
                       final m = messages[i];
-                      return ListTile(
-                        title: Text(m['message']),
-                        subtitle: Text(
-                          m['user_id'],
-                        ), // replace with username if available
+                      return FutureBuilder<String>(
+                        future: _getUsername(m['uuid']),
+                        builder: (context, snapshot) {
+                          final username = snapshot.data ?? 'Unknown';
+                          return ListTile(
+                            title: Text(username),
+                            subtitle: Text(m['message']),
+                          );
+                        },
                       );
                     },
                   ),

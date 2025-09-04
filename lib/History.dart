@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jaganalar/ChatQuiz.dart';
 import 'Supabase.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -11,14 +12,17 @@ class HistoryPage extends StatelessWidget {
 
     final response = await SupabaseService.client
         .from('quiz_completed')
-        .select('quiz_id')
+        .select('quiz_id') // include quiz_id
         .eq('uuid', currentUserId);
 
     if (response is List) {
-      // Map each row to a Future<Map> and wait for all
       final futures = response.map<Future<Map<String, dynamic>>>((row) async {
         final title = await getQuizTitleById(row['quiz_id'] as int);
-        return {'title': title, 'completedAt': row['timestamp']};
+        return {
+          'quiz_id': row['quiz_id'], // include ID here
+          'title': title,
+          'completedAt': row['timestamp'],
+        };
       }).toList();
 
       return await Future.wait(futures);
@@ -77,6 +81,13 @@ class HistoryPage extends StatelessWidget {
                   trailing: const Icon(Icons.arrow_forward_ios),
                   onTap: () {
                     // Optional: navigate to review page
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            QuizDiscussionPage(quizId: quiz['quiz_id']),
+                      ),
+                    );
                   },
                 ),
               );
