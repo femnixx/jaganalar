@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'Supabase.dart';
@@ -20,7 +21,7 @@ class QuizResultsPage extends StatefulWidget {
 class _QuizResultsPageState extends State<QuizResultsPage> {
   Map<String, dynamic>? _quizData;
   bool _isLoading = true;
-  int _currentIndex = 0; // State variable to track the current question index
+  int _currentIndex = 0;
 
   @override
   void initState() {
@@ -30,38 +31,64 @@ class _QuizResultsPageState extends State<QuizResultsPage> {
 
   Future<void> _fetchQuizData() async {
     try {
-      final response = await SupabaseService.client
+      final userId = SupabaseService.client.auth!.currentUser!.id;
+
+      // Fetch quiz questions
+      final quizResponse = await SupabaseService.client
           .from('questions')
           .select()
           .eq('id', widget.quizId)
           .single();
 
+      // Fetch user's quiz result including feedback
+      final resultResponse = await SupabaseService.client
+          .from('quiz_results')
+          .select()
+          .eq('quiz_id', widget.quizId)
+          .eq('uuid', userId)
+          .single();
+
       setState(() {
-        _quizData = response;
+        _quizData = {
+          'questions': quizResponse['questions'],
+          'answers': quizResponse['answers'],
+          'correctIndex': quizResponse['correctIndex'],
+          'title': quizResponse['title'],
+          'feedback': resultResponse['feedback'],
+        };
         _isLoading = false;
       });
     } catch (e) {
       print('Error fetching quiz data: $e');
-      setState(() {
-        _isLoading = false;
-      });
+      setState(() => _isLoading = false);
+    }
+  }
+
+  List<String> parseFeedback(String raw) {
+    try {
+      // Feedback is saved as a JSON array string, decode once
+      final List<dynamic> decoded = jsonDecode(raw);
+      return decoded.map((e) => e.toString()).toList();
+    } catch (e) {
+      print('Error parsing feedback: $e');
+      return [];
     }
   }
 
   void _nextQuestion() {
     if (_currentIndex < _quizData!['questions'].length - 1) {
-      setState(() {
-        _currentIndex++;
-      });
+      setState(() => _currentIndex++);
     }
   }
 
   void _previousQuestion() {
     if (_currentIndex > 0) {
-      setState(() {
-        _currentIndex--;
-      });
+      setState(() => _currentIndex--);
     }
+  }
+
+  String getAlphabet(int index) {
+    return String.fromCharCode('A'.codeUnitAt(0) + index);
   }
 
   @override
@@ -85,20 +112,29 @@ class _QuizResultsPageState extends State<QuizResultsPage> {
     final quizCorrectIndices = _quizData!['correctIndex'];
     final quizTitle = _quizData!['title'] ?? 'Quiz Results';
 
+    final quizFeedback = _quizData!['feedback'] != null
+        ? parseFeedback(_quizData!['feedback'])
+        : [];
+
     final questionText = quizQuestions[_currentIndex];
     final options = List<String>.from(quizAnswers[_currentIndex]);
     final correctIndex = quizCorrectIndices[_currentIndex] as int;
     final userAnswerData = widget.userAnswers[_currentIndex];
     final selectedOptionIndex = userAnswerData['selected_option'];
     final isCorrect = userAnswerData['is_correct'];
+    final feedback =
+        quizFeedback.isNotEmpty && quizFeedback.length > _currentIndex
+        ? quizFeedback[_currentIndex]
+        : 'No feedback available';
 
     return Scaffold(
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Header
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -106,23 +142,21 @@ class _QuizResultsPageState extends State<QuizResultsPage> {
                     icon: const Icon(Icons.arrow_back_ios),
                     onPressed: () => Navigator.pop(context),
                   ),
-                  Text(
-                    quizTitle,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 20,
+                  Expanded(
+                    child: Text(
+                      quizTitle,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
                   ),
-                  IconButton(
-                    onPressed: () {
-                      // Action for more options
-                    },
-                    icon: const Icon(Icons.more_vert),
-                  ),
+                  const Icon(Icons.more_vert),
                 ],
               ),
               const Divider(),
-
+              // Question navigation circles
               SizedBox(
                 height: 40,
                 child: ListView.builder(
@@ -130,24 +164,14 @@ class _QuizResultsPageState extends State<QuizResultsPage> {
                   itemCount: quizQuestions.length,
                   itemBuilder: (context, index) {
                     final isCurrent = index == _currentIndex;
-                    final questionResult = widget.userAnswers[index];
-                    final isQuestionCorrect = questionResult['is_correct'];
-
-                    Color circleColor;
-                    if (isCurrent) {
-                      circleColor = Colors.blue;
-                    } else if (isQuestionCorrect) {
-                      circleColor = Colors.green;
-                    } else {
-                      circleColor = Colors.red;
-                    }
+                    final isQuestionCorrect =
+                        widget.userAnswers[index]['is_correct'];
+                    Color circleColor = isCurrent
+                        ? Colors.blue
+                        : (isQuestionCorrect ? Colors.green : Colors.red);
 
                     return GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          _currentIndex = index;
-                        });
-                      },
+                      onTap: () => setState(() => _currentIndex = index),
                       child: Container(
                         alignment: Alignment.center,
                         margin: const EdgeInsets.symmetric(horizontal: 4),
@@ -159,8 +183,8 @@ class _QuizResultsPageState extends State<QuizResultsPage> {
                         ),
                         child: Text(
                           (index + 1).toString(),
-                          style: TextStyle(
-                            color: isCurrent ? Colors.white : Colors.white,
+                          style: const TextStyle(
+                            color: Colors.white,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -170,7 +194,7 @@ class _QuizResultsPageState extends State<QuizResultsPage> {
                 ),
               ),
               const Divider(),
-
+              // Progress
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -198,8 +222,7 @@ class _QuizResultsPageState extends State<QuizResultsPage> {
                 backgroundColor: Colors.grey[300],
               ),
               const SizedBox(height: 20),
-
-              // Question content
+              // Question and options
               Expanded(
                 child: SingleChildScrollView(
                   child: Column(
@@ -259,6 +282,7 @@ class _QuizResultsPageState extends State<QuizResultsPage> {
                         );
                       }),
                       const SizedBox(height: 20),
+                      // Correct / Incorrect indicator
                       Container(
                         width: double.infinity,
                         padding: const EdgeInsets.all(16),
@@ -280,12 +304,36 @@ class _QuizResultsPageState extends State<QuizResultsPage> {
                           ),
                         ),
                       ),
+                      const SizedBox(height: 20),
+                      // Feedback
+                      Container(
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.black),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        padding: const EdgeInsets.all(8),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (!isCorrect)
+                              const Text(
+                                "Jawaban anda salah karena",
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            Text(feedback),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 ),
               ),
-
               const SizedBox(height: 20),
+              // Navigation buttons
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -306,9 +354,5 @@ class _QuizResultsPageState extends State<QuizResultsPage> {
         ),
       ),
     );
-  }
-
-  String getAlphabet(int index) {
-    return String.fromCharCode('A'.codeUnitAt(0) + index);
   }
 }
