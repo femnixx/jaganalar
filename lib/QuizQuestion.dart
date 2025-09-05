@@ -98,7 +98,8 @@ class QuizPage extends StatefulWidget {
 class _QuizPageState extends State<QuizPage> {
   int currentIndex = 0;
   int? selectedAnswer;
-  String? feedbackMessage; // New state variable for feedback
+  String? feedbackMessage;
+  List<Map<String, dynamic>> _userAnswers = [];
 
   Future<void> updateMissionCountAndLevelUp() async {
     final user = await fetchUser();
@@ -135,27 +136,44 @@ class _QuizPageState extends State<QuizPage> {
     }
   }
 
+  // New function to save quiz results
+  Future<void> saveQuizResults() async {
+    final userId = SupabaseService.client.auth.currentUser!.id;
+    final score = _userAnswers.where((a) => a['is_correct'] == true).length;
+
+    try {
+      await SupabaseService.client.from('quiz_results').insert({
+        'uuid': userId,
+        'quiz_id': widget.quizSet.id,
+        'selected_answers': _userAnswers,
+        'score': score,
+        'created_at': DateTime.now().toIso8601String(),
+      });
+      print('Quiz results saved successfully!');
+    } catch (e) {
+      print('Error saving quiz results: $e');
+    }
+  }
+
   Future<void> nextQuestion() async {
     if (currentIndex < widget.quizSet.questions.length - 1) {
-      // Move to next question
       setState(() {
         currentIndex++;
         selectedAnswer = null;
         feedbackMessage = null;
       });
     } else {
-      // Last question → async updates must run outside of setState
       await updateMissionCountAndLevelUp();
       await addHistory(widget.quizSet.id);
+      await saveQuizResults();
       print(
         "Quiz ${widget.quizSet.id} added to history of user ${SupabaseService.client.auth.currentUser!.id}",
       );
       setState(() {});
       if (!mounted) return;
-      // Show dialog after async operations
       showDialog(
         context: context,
-        barrierDismissible: false, // prevent closing by tapping outside
+        barrierDismissible: false,
         builder: (context) => AlertDialog(
           title: const Text('Quiz Completed!'),
           content: const Text('You gained XP and completed a mission!'),
@@ -187,7 +205,6 @@ class _QuizPageState extends State<QuizPage> {
     });
 
     try {
-      // Sanitize input to avoid Gemini errors
       String safeQuestion = question.replaceAll(RegExp(r'[^\w\s\+\-\*/]'), '');
       List<String> safeOptions = options
           .map((e) => e.replaceAll(RegExp(r'[^\w\s\+\-\*/]'), ''))
@@ -315,6 +332,11 @@ If correct: explain briefly why others are wrong.
 
                       setState(() {
                         selectedAnswer = index;
+                        _userAnswers.add({
+                          'question_index': currentIndex,
+                          'selected_option': index,
+                          'is_correct': index == correctIndex,
+                        });
                       });
 
                       await getAndSetFeedback(
