@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:jaganalar/QuizQuestion.dart';
+import 'package:jaganalar/UserModel.dart';
 import 'Supabase.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'UserModel.dart';
 
 class QuizDiscussionPage extends StatefulWidget {
   final int quizId;
@@ -21,12 +24,11 @@ class _QuizDiscussionPageState extends State<QuizDiscussionPage> {
     _loadMessages();
   }
 
-  // Fetch messages safely
   Future<void> _loadMessages() async {
     try {
       final response = await SupabaseService.client
           .from('quiz_discussions')
-          .select('message, uuid')
+          .select('message, uuid, created_at')
           .eq('quiz_id', widget.quizId)
           .order('created_at', ascending: true);
 
@@ -43,7 +45,6 @@ class _QuizDiscussionPageState extends State<QuizDiscussionPage> {
     }
   }
 
-  // Get username for a uuid
   Future<String> _getUsername(String uuid) async {
     try {
       final response = await SupabaseService.client
@@ -61,7 +62,15 @@ class _QuizDiscussionPageState extends State<QuizDiscussionPage> {
     return 'Unknown';
   }
 
-  // Send a message (one per user per quiz)
+  Future<UserModel?> _getUser(String uuid) async {
+    try {
+      return await fetchUser();
+    } catch (e) {
+      print("Error fetching user: $e");
+      return null;
+    }
+  }
+
   Future<void> _sendMessage() async {
     final userId = SupabaseService.client.auth.currentUser!.id;
     final text = _controller.text.trim();
@@ -80,6 +89,13 @@ class _QuizDiscussionPageState extends State<QuizDiscussionPage> {
     }
   }
 
+  DateTime _parseTimestamp(dynamic rawTimestamp) {
+    if (rawTimestamp == null) return DateTime.now();
+    if (rawTimestamp is String) return DateTime.parse(rawTimestamp).toLocal();
+    if (rawTimestamp is DateTime) return rawTimestamp.toLocal();
+    return DateTime.now();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -93,13 +109,56 @@ class _QuizDiscussionPageState extends State<QuizDiscussionPage> {
                     itemCount: messages.length,
                     itemBuilder: (_, i) {
                       final m = messages[i];
+                      final timestamp = _parseTimestamp(m['created_at']);
+                      final formattedTime =
+                          "${timestamp.hour.toString().padLeft(2, '0')}:${timestamp.minute.toString().padLeft(2, '0')}";
+
                       return FutureBuilder<String>(
                         future: _getUsername(m['uuid']),
-                        builder: (context, snapshot) {
-                          final username = snapshot.data ?? 'Unknown';
-                          return ListTile(
-                            title: Text(username),
-                            subtitle: Text(m['message']),
+                        builder: (context, usernameSnapshot) {
+                          final username = usernameSnapshot.data ?? 'Unknown';
+
+                          return FutureBuilder<UserModel?>(
+                            future: _getUser(m['uuid']),
+                            builder: (context, userSnapshot) {
+                              final user = userSnapshot.data;
+
+                              return Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Row(
+                                  children: [
+                                    CircleAvatar(
+                                      radius: 26,
+                                      backgroundImage: user?.avatarUrl != null
+                                          ? NetworkImage(user!.avatarUrl!)
+                                          : null,
+                                      child: user?.avatarUrl == null
+                                          ? const Icon(
+                                              Icons.person,
+                                              size: 26,
+                                              color: Colors.white,
+                                            )
+                                          : null,
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: ListTile(
+                                        title: Row(
+                                          children: [
+                                            Text(username),
+                                            const SizedBox(width: 8),
+                                            const Text('|'),
+                                            const SizedBox(width: 8),
+                                            Text(formattedTime),
+                                          ],
+                                        ),
+                                        subtitle: Text(m['message'] ?? ''),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
                           );
                         },
                       );
