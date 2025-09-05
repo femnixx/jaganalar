@@ -168,6 +168,8 @@ class _DailyMissionsContentState extends State<DailyMissionsContent> {
                                       questions: questions,
                                       answers: answers,
                                       correctIndex: correctIndex,
+                                      quizId: mission['id'] ?? 0,
+                                      quizTitle: mission['title'] ?? '',
                                     ),
                                   ),
                                 );

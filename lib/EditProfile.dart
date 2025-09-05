@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:jaganalar/Dashboard.dart';
+import 'package:jaganalar/main_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as p;
@@ -165,7 +166,7 @@ class _EditprofileState extends State<Editprofile> {
         );
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => Dashboard()),
+          MaterialPageRoute(builder: (context) => MyMainScreen()),
         );
       });
     } catch (e) {
