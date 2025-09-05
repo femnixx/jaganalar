@@ -55,39 +55,64 @@ class _DailyMissionsQuizState extends State<DailyMissionsQuiz> {
 
     showDialog(
       context: context,
-      barrierDismissible: false, // dims background until closed
+      barrierDismissible: false,
       builder: (_) => AlertDialog(
+        backgroundColor: Colors.transparent, // no background for SVG
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // SVG on top
+            SvgPicture.asset(
+              userIsCorrect ? 'assets/correct.svg' : 'assets/wrong.svg',
+              height: 250,
+            ),
+            const SizedBox(height: 20),
+
+            // Text & explanation container
             Container(
-              children: [
-                SvgPicture.asset(
-                  userIsCorrect ? 'assets/correct.svg' : 'assets/wrong.svg',
-                  height: 100,
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  userIsCorrect ? 'Jawaban Anda Benar' : 'Jawaban Anda Salah',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: userIsCorrect
-                        ? const Color(0xff72C457)
-                        : const Color(0xffDB5550),
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 10,
+                    offset: Offset(0, 4),
                   ),
-                ),
-                const SizedBox(height: 15),
-                Text(explanations[correctAnswer]!, textAlign: TextAlign.center),
-                const SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context); // close dialog
-                    setState(() => currentIndex++); // move to next question
-                  },
-                  child: const Text('Lanjut'),
-                ),
-              ],
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    userIsCorrect ? 'Jawaban Anda Benar' : 'Jawaban Anda Salah',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: userIsCorrect
+                          ? const Color(0xff72C457)
+                          : const Color(0xffDB5550),
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    explanations[correctAnswer]!,
+                    style: const TextStyle(fontSize: 16),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context); // close dialog
+                      setState(() => currentIndex++); // next question
+                    },
+                    child: const Text('Lanjut'),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
