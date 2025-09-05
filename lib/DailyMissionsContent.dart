@@ -3,6 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:jaganalar/QuizQuestion.dart';
 import 'package:jaganalar/Supabase.dart';
+import 'DailyMissionsQuiz.dart';
 
 class DailyMissionsContent extends StatelessWidget {
   DailyMissionsContent({super.key});
@@ -101,14 +102,18 @@ class DailyMissionsContent extends StatelessWidget {
                                       ),
                                     ),
                                     onPressed: () {
-                                      final selectedQuiz = QuizSet.fromMap(
-                                        mission,
-                                      );
+                                      final List<String> questions =
+                                          List<String>.from(
+                                            mission['questions'] ?? [],
+                                          );
+
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (_) =>
-                                              QuizPage(quizSet: selectedQuiz),
+                                          builder: (_) => DailyMissionsQuiz(
+                                            questions:
+                                                questions, // Pass questions to the quiz template
+                                          ),
                                         ),
                                       );
                                     },
