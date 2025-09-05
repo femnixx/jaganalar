@@ -14,8 +14,6 @@ import 'consts.dart';
 
 final Gemini gemini = Gemini.init(apiKey: GEMINI_API_KEY);
 
-/// Model for quiz sets
-// lib/QuizSet.dart (or wherever you define your models)
 class QuizSet {
   final int id;
   final String title;
@@ -252,11 +250,14 @@ If correct: explain briefly why others are wrong.
                       },
                       icon: Icon(Icons.arrow_back_ios),
                     ),
-                    Text(
-                      question,
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w500,
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Text(
+                        question,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
                     IconButton(

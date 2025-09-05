@@ -1,8 +1,8 @@
-import 'dart:convert'; // <- Needed for jsonDecode
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'DailyMissionsQuiz.dart'; // <- your quiz page
+import 'DailyMissionsQuiz.dart';
 
 class DailyMissionsContent extends StatefulWidget {
   const DailyMissionsContent({super.key});
@@ -52,13 +52,15 @@ class _DailyMissionsContentState extends State<DailyMissionsContent> {
       itemBuilder: (context, index) {
         final mission = dailyMissions[index];
 
-        // Decode questions to pass to DailyMissionsQuiz
+        // Safely decode questions
         List<String> questions = [];
         final rawQuestions = mission['questions'];
         if (rawQuestions is String) {
-          questions = List<String>.from(jsonDecode(rawQuestions));
+          final decoded = jsonDecode(rawQuestions);
+          if (decoded is List)
+            questions = decoded.map((e) => e.toString()).toList();
         } else if (rawQuestions is List) {
-          questions = List<String>.from(rawQuestions);
+          questions = rawQuestions.map((e) => e.toString()).toList();
         }
 
         return Container(
@@ -120,17 +122,17 @@ class _DailyMissionsContentState extends State<DailyMissionsContent> {
                         ],
                       ),
                       ElevatedButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => DailyMissionsQuiz(
-                                questions:
-                                    questions, // <- pass the questions list
-                              ),
-                            ),
-                          );
-                        },
+                        onPressed: questions.isEmpty
+                            ? null
+                            : () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        DailyMissionsQuiz(questions: questions),
+                                  ),
+                                );
+                              },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(
                             0xff498BB6,

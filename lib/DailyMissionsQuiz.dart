@@ -3,8 +3,15 @@ import 'package:swipe_cards/swipe_cards.dart';
 
 class DailyMissionsQuiz extends StatefulWidget {
   final List<String> questions;
+  final List<int> correctIndex;
+  final List<List<String>> answers;
 
-  const DailyMissionsQuiz({super.key, required this.questions});
+  const DailyMissionsQuiz({
+    super.key,
+    required this.questions,
+    required this.answers,
+    required this.correctIndex,
+  });
 
   @override
   State<DailyMissionsQuiz> createState() => _DailyMissionsQuizState();
@@ -15,11 +22,30 @@ class _DailyMissionsQuizState extends State<DailyMissionsQuiz> {
   final List<SwipeItem> _swipeItems = [];
   int currentIndex = 0;
 
+  void handleSwipe(bool userSwipedRight) {
+    final correct =
+        widget.correctIndex[currentIndex] == (userSwipedRight ? 1 : 0);
+
+    // show dialog
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: correct ? Colors.green : Colors.red,
+        title: Text(correct ? "Jawaban Benar!" : "Jawaban Salah"),
+        content: Text(
+          correct
+              ? "Bagus! Jawaban Anda benar"
+              : "Oops! Jawaban yang bennar adalah: ${widget.answers[currentIndex][widget.correctIndex[currentIndex]]}",
+        ),
+      ),
+      barrierDismissible: false,
+    );
+  }
+
   @override
   void initState() {
     super.initState();
 
-    // Handle empty list gracefully
     if (widget.questions.isNotEmpty) {
       for (var question in widget.questions) {
         _swipeItems.add(
@@ -35,10 +61,7 @@ class _DailyMissionsQuizState extends State<DailyMissionsQuiz> {
   }
 
   void handleSwipe(bool isFact) {
-    setState(() {
-      currentIndex++;
-    });
-
+    setState(() => currentIndex++);
     if (currentIndex >= widget.questions.length) {
       ScaffoldMessenger.of(
         context,
@@ -66,11 +89,9 @@ class _DailyMissionsQuizState extends State<DailyMissionsQuiz> {
             )
           : Column(
               children: [
-                // Progress bar
                 Padding(
                   padding: const EdgeInsets.all(16),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Expanded(
                         child: LinearProgressIndicator(
@@ -92,8 +113,6 @@ class _DailyMissionsQuizState extends State<DailyMissionsQuiz> {
                   ),
                 ),
                 const SizedBox(height: 20),
-
-                // Swipe cards
                 Expanded(
                   child: SwipeCards(
                     matchEngine: _matchEngine,
@@ -129,8 +148,6 @@ class _DailyMissionsQuizState extends State<DailyMissionsQuiz> {
                     },
                   ),
                 ),
-
-                // Instructions
                 Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,

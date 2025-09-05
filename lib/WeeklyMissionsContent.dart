@@ -1,8 +1,9 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:jaganalar/QuizQuestion.dart'; // <-- QuizPage is here
+import 'package:jaganalar/QuizQuestion.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'QuizQuestion.dart'; // where QuizSet is defined
+import 'QuizQuestion.dart'; // your model for QuizSet
 
 class WeeklyMissionsContent extends StatefulWidget {
   final String userId;
@@ -16,7 +17,7 @@ class WeeklyMissionsContent extends StatefulWidget {
 class _WeeklyMissionsContentState extends State<WeeklyMissionsContent> {
   final SupabaseClient supabase = Supabase.instance.client;
   bool loading = true;
-  List<QuizSet> quizzes = [];
+  List<Map<String, dynamic>> quizzes = [];
 
   @override
   void initState() {
@@ -42,9 +43,7 @@ class _WeeklyMissionsContentState extends State<WeeklyMissionsContent> {
                 .not('id', 'in', completedIds);
 
       setState(() {
-        quizzes = (allQuizzes as List)
-            .map((e) => QuizSet.fromMap(e as Map<String, dynamic>))
-            .toList();
+        quizzes = List<Map<String, dynamic>>.from(allQuizzes);
         loading = false;
       });
     } catch (e) {
@@ -55,105 +54,120 @@ class _WeeklyMissionsContentState extends State<WeeklyMissionsContent> {
 
   @override
   Widget build(BuildContext context) {
-    if (loading) {
-      return const Center(child: CircularProgressIndicator());
-    }
+    if (loading) return const Center(child: CircularProgressIndicator());
+    if (quizzes.isEmpty)
+      return const Center(child: Text("No quizzes available"));
 
-    return quizzes.isEmpty
-        ? const Center(child: Text("No quizzes available"))
-        : ListView.builder(
-            itemCount: quizzes.length,
-            itemBuilder: (context, index) {
-              final quiz = quizzes[index];
-              return Container(
-                height: 180,
-                margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                child: Stack(
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: SvgPicture.asset(
-                        'assets/questionsframefull.svg',
-                        fit: BoxFit.cover,
-                        width: double.infinity,
-                      ),
-                    ),
-                    Positioned.fill(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  quiz.title,
-                                  style: const TextStyle(
-                                    fontSize: 20,
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Row(
-                                  children: [
-                                    Text(
-                                      '${quiz.questions.length} pertanyaan',
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 15,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    const Text(
-                                      '•',
-                                      style: TextStyle(color: Colors.white),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      '${quiz.points} XP',
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 15,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
+    return ListView.builder(
+      itemCount: quizzes.length,
+      itemBuilder: (context, index) {
+        final quiz = quizzes[index];
+
+        // Decode questions safely
+        List<String> questions = [];
+        final rawQuestions = quiz['questions'];
+        if (rawQuestions is String) {
+          final decoded = jsonDecode(rawQuestions);
+          if (decoded is List)
+            questions = decoded.map((e) => e.toString()).toList();
+        } else if (rawQuestions is List) {
+          questions = rawQuestions.map((e) => e.toString()).toList();
+        }
+
+        return Container(
+          height: 180,
+          margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+          child: Stack(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: SvgPicture.asset(
+                  'assets/questionsframefull.svg', // match DailyMissions style
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                ),
+              ),
+              Positioned.fill(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Left side: title + info
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            quiz['title'] ?? "No title",
+                            style: const TextStyle(
+                              fontSize: 20,
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
                             ),
-                            ElevatedButton(
-                              onPressed: () {
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              Text(
+                                '${questions.length} pertanyaan',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 15,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              const Text(
+                                '•',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                '${quiz['points'] ?? 0} XP',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 15,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      // Right side: start quiz button
+                      ElevatedButton(
+                        onPressed: questions.isEmpty
+                            ? null
+                            : () {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (_) =>
-                                        QuizPage(quizSet: quiz), // pass QuizSet
+                                    builder: (_) => QuizPage(
+                                      quizSet: QuizSet.fromMap(quiz),
+                                    ),
                                   ),
                                 );
                               },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(
-                                  0xff498BB6,
-                                ).withOpacity(0.5),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                              child: const Text(
-                                "Start Quiz",
-                                style: TextStyle(color: Colors.white),
-                              ),
-                            ),
-                          ],
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(
+                            0xff498BB6,
+                          ).withOpacity(0.5),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: const Text(
+                          "Start Quiz",
+                          style: TextStyle(color: Colors.white),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              );
-            },
-          );
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 }

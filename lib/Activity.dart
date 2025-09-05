@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:jaganalar/DailyMissionsContent.dart';
+import 'package:jaganalar/DailyMissionsQuiz.dart';
 import 'package:jaganalar/Supabase.dart';
 import 'package:jaganalar/WeeklyMissionsContent.dart';
 import 'Dashboard.dart';
@@ -96,15 +99,32 @@ class _ActivityState extends State<Activity>
                 .select('*')
                 .eq('is_daily', true),
             builder: (context, snapshot) {
-              if (!snapshot.hasData) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
               }
+
+              if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return const Center(child: Text("No daily missions available"));
+              }
+
               final mission = snapshot.data!.first;
-              return DailyMissionsQuiz(mission: mission);
+
+              // decode questions
+              List<String> questions = [];
+              final rawQuestions = mission['questions'];
+              if (rawQuestions is String) {
+                questions = List<String>.from(jsonDecode(rawQuestions));
+              } else if (rawQuestions is List) {
+                questions = List<String>.from(rawQuestions);
+              }
+
+              // Pass the mission to your DailyMissionsQuiz
+              return DailyMissionsContent();
             },
           ),
         ],
       ),
+
       // bottomNavigationBar: _buildBottomNav(context),
     );
   }
