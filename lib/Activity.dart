@@ -90,7 +90,19 @@ class _ActivityState extends State<Activity>
         controller: _tabController,
         children: [
           WeeklyMissionsContent(userId: userId),
-          DailyMissionsContent(),
+          FutureBuilder<List<Map<String, dynamic>>>(
+            future: SupabaseService.client
+                .from('questions')
+                .select('*')
+                .eq('is_daily', true),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              final mission = snapshot.data!.first;
+              return DailyMissionsQuiz(mission: mission);
+            },
+          ),
         ],
       ),
       // bottomNavigationBar: _buildBottomNav(context),

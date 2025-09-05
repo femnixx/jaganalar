@@ -37,9 +37,15 @@ class QuizSet {
     return QuizSet(
       id: data['id'] as int,
       title: data['title'] as String,
-      questions: data['questions'] as List<dynamic>,
-      answers: data['answers'] as List<dynamic>,
-      correctIndex: data['correctIndex'] as List<dynamic>,
+      questions: (data['questions'] is String)
+          ? List<dynamic>.from(jsonDecode(data['questions']))
+          : List<dynamic>.from(data['questions'] ?? []),
+      answers: (data['answers'] is String)
+          ? List<dynamic>.from(jsonDecode(data['answers']))
+          : List<dynamic>.from(data['answers'] ?? []),
+      correctIndex: (data['correctIndex'] is String)
+          ? List<dynamic>.from(jsonDecode(data['correctIndex']))
+          : List<dynamic>.from(data['correctIndex'] ?? []),
       points: data['points'] as int,
     );
   }

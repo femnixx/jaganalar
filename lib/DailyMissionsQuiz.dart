@@ -19,17 +19,19 @@ class _DailyMissionsQuizState extends State<DailyMissionsQuiz> {
   void initState() {
     super.initState();
 
-    for (var question in widget.questions) {
-      _swipeItems.add(
-        SwipeItem(
-          content: question,
-          likeAction: () => handleSwipe(true),
-          nopeAction: () => handleSwipe(false),
-        ),
-      );
+    // Handle empty list gracefully
+    if (widget.questions.isNotEmpty) {
+      for (var question in widget.questions) {
+        _swipeItems.add(
+          SwipeItem(
+            content: question,
+            likeAction: () => handleSwipe(true),
+            nopeAction: () => handleSwipe(false),
+          ),
+        );
+      }
+      _matchEngine = MatchEngine(swipeItems: _swipeItems);
     }
-
-    _matchEngine = MatchEngine(swipeItems: _swipeItems);
   }
 
   void handleSwipe(bool isFact) {
@@ -48,97 +50,108 @@ class _DailyMissionsQuizState extends State<DailyMissionsQuiz> {
   @override
   Widget build(BuildContext context) {
     final total = widget.questions.length;
-    final progress = (currentIndex + 1) / total;
+    final progress = total > 0 ? (currentIndex + 1) / total : 0.0;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text("Kuis Analisis Fakta"),
         backgroundColor: Colors.blueAccent,
       ),
-      body: Column(
-        children: [
-          // Progress bar with counter
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      body: total == 0
+          ? const Center(
+              child: Text(
+                "No questions available.",
+                style: TextStyle(fontSize: 18),
+              ),
+            )
+          : Column(
               children: [
-                Expanded(
-                  child: LinearProgressIndicator(
-                    value: progress,
-                    minHeight: 8,
-                    color: Colors.green,
-                    backgroundColor: Colors.grey[300],
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Text(
-                  "${currentIndex + 1}/$total",
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-
-          // Swipe cards
-          Expanded(
-            child: SwipeCards(
-              matchEngine: _matchEngine,
-              itemBuilder: (context, index) {
-                return Card(
-                  elevation: 6,
-                  margin: const EdgeInsets.all(20),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  color: Colors.white,
-                  child: Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Text(
-                        widget.questions[index],
-                        textAlign: TextAlign.center,
+                // Progress bar
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: LinearProgressIndicator(
+                          value: progress,
+                          minHeight: 8,
+                          color: Colors.green,
+                          backgroundColor: Colors.grey[300],
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        "$currentIndex/$total",
                         style: const TextStyle(
-                          fontSize: 20,
+                          fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                    ),
+                    ],
                   ),
-                );
-              },
-              onStackFinished: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Quiz Completed!")),
-                );
-                Navigator.pop(context);
-              },
-            ),
-          ),
-
-          // Instructions
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: const [
-                Text(
-                  "← Provokasi",
-                  style: TextStyle(color: Colors.red, fontSize: 16),
                 ),
-                Text(
-                  "Fakta →",
-                  style: TextStyle(color: Colors.green, fontSize: 16),
+                const SizedBox(height: 20),
+
+                // Swipe cards
+                Expanded(
+                  child: SwipeCards(
+                    matchEngine: _matchEngine,
+                    itemBuilder: (context, index) {
+                      final question = widget.questions[index];
+                      return Card(
+                        elevation: 6,
+                        margin: const EdgeInsets.all(20),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        color: Colors.white,
+                        child: Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(20.0),
+                            child: Text(
+                              question,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                    onStackFinished: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("Quiz Completed!")),
+                      );
+                      Navigator.pop(context);
+                    },
+                  ),
+                ),
+
+                // Instructions
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 20,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: const [
+                      Text(
+                        "← Provokasi",
+                        style: TextStyle(color: Colors.red, fontSize: 16),
+                      ),
+                      Text(
+                        "Fakta →",
+                        style: TextStyle(color: Colors.green, fontSize: 16),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
-          ),
-        ],
-      ),
     );
   }
 }
