@@ -22,26 +22,6 @@ class _DailyMissionsQuizState extends State<DailyMissionsQuiz> {
   final List<SwipeItem> _swipeItems = [];
   int currentIndex = 0;
 
-  void handleSwipe(bool userSwipedRight) {
-    final correct =
-        widget.correctIndex[currentIndex] == (userSwipedRight ? 1 : 0);
-
-    // show dialog
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        backgroundColor: correct ? Colors.green : Colors.red,
-        title: Text(correct ? "Jawaban Benar!" : "Jawaban Salah"),
-        content: Text(
-          correct
-              ? "Bagus! Jawaban Anda benar"
-              : "Oops! Jawaban yang bennar adalah: ${widget.answers[currentIndex][widget.correctIndex[currentIndex]]}",
-        ),
-      ),
-      barrierDismissible: false,
-    );
-  }
-
   @override
   void initState() {
     super.initState();
@@ -60,14 +40,40 @@ class _DailyMissionsQuizState extends State<DailyMissionsQuiz> {
     }
   }
 
-  void handleSwipe(bool isFact) {
-    setState(() => currentIndex++);
-    if (currentIndex >= widget.questions.length) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("Quiz Completed!")));
-      Navigator.pop(context);
-    }
+  void handleSwipe(bool userSwipedRight) {
+    final correct =
+        widget.correctIndex[currentIndex] == (userSwipedRight ? 1 : 0);
+
+    // Show a popup/dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        backgroundColor: correct ? Colors.green : Colors.red,
+        title: Text(correct ? "✅ Jawaban Benar!" : "❌ Jawaban Salah"),
+        content: Text(
+          correct
+              ? "Bagus! Jawaban Anda benar."
+              : "Oops! Jawaban yang benar adalah: ${widget.answers[currentIndex][widget.correctIndex[currentIndex]]}",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              setState(() => currentIndex++);
+
+              if (currentIndex >= widget.questions.length) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Quiz Completed!")),
+                );
+                Navigator.pop(context);
+              }
+            },
+            child: const Text("Lanjut"),
+          ),
+        ],
+      ),
+    );
   }
 
   @override

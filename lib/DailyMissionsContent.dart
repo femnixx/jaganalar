@@ -125,11 +125,50 @@ class _DailyMissionsContentState extends State<DailyMissionsContent> {
                         onPressed: questions.isEmpty
                             ? null
                             : () {
+                                // Decode answers
+                                List<List<String>> answers = [];
+                                final rawAnswers = mission['answers'];
+                                if (rawAnswers is String) {
+                                  final decoded = jsonDecode(rawAnswers);
+                                  if (decoded is List) {
+                                    answers = decoded
+                                        .map<List<String>>(
+                                          (e) => List<String>.from(e),
+                                        )
+                                        .toList();
+                                  }
+                                } else if (rawAnswers is List) {
+                                  answers = rawAnswers
+                                      .map<List<String>>(
+                                        (e) => List<String>.from(e),
+                                      )
+                                      .toList();
+                                }
+
+                                // Decode correctIndex
+                                List<int> correctIndex = [];
+                                final rawCorrect = mission['correctIndex'];
+                                if (rawCorrect is String) {
+                                  final decoded = jsonDecode(rawCorrect);
+                                  if (decoded is List) {
+                                    correctIndex = decoded
+                                        .map<int>((e) => e as int)
+                                        .toList();
+                                  }
+                                } else if (rawCorrect is List) {
+                                  correctIndex = rawCorrect
+                                      .map<int>((e) => e as int)
+                                      .toList();
+                                }
+
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (_) =>
-                                        DailyMissionsQuiz(questions: questions),
+                                    builder: (_) => DailyMissionsQuiz(
+                                      questions: questions,
+                                      answers: answers,
+                                      correctIndex: correctIndex,
+                                    ),
                                   ),
                                 );
                               },
