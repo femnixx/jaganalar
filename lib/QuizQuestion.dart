@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_gemini/flutter_gemini.dart';
 import 'package:jaganalar/Dashboard.dart';
 import 'package:jaganalar/History.dart';
+import 'package:jaganalar/QuizResultsPage.dart';
 import 'package:jaganalar/Supabase.dart';
 import 'package:jaganalar/main_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'consts.dart';
 import 'UserModel.dart';
+import 'Feedback.dart';
 
 final Gemini gemini = Gemini.init(apiKey: GEMINI_API_KEY);
 
@@ -223,7 +225,9 @@ If correct: explain briefly why others are wrong.
                 Navigator.pop(context);
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (_) => MyMainScreen()),
+                  MaterialPageRoute(
+                    builder: (_) => FeedbackPage(quizId: widget.quizSet.id),
+                  ),
                 );
               },
               child: const Text('OK'),

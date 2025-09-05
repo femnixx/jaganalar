@@ -38,7 +38,7 @@ class _QuizResultsPageState extends State<QuizResultsPage> {
           .from('questions')
           .select()
           .eq('id', widget.quizId)
-          .single();
+          .maybeSingle();
 
       // Fetch user's quiz result including feedback
       final resultResponse = await SupabaseService.client
@@ -46,15 +46,15 @@ class _QuizResultsPageState extends State<QuizResultsPage> {
           .select()
           .eq('quiz_id', widget.quizId)
           .eq('uuid', userId)
-          .single();
+          .maybeSingle();
 
       setState(() {
         _quizData = {
-          'questions': quizResponse['questions'],
+          'questions': quizResponse!['questions'],
           'answers': quizResponse['answers'],
           'correctIndex': quizResponse['correctIndex'],
           'title': quizResponse['title'],
-          'feedback': resultResponse['feedback'],
+          'feedback': resultResponse!['feedback'],
         };
         _isLoading = false;
       });
