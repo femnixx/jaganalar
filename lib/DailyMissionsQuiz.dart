@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:swipe_cards/swipe_cards.dart';
 
 class DailyMissionsQuiz extends StatefulWidget {
@@ -22,56 +23,74 @@ class _DailyMissionsQuizState extends State<DailyMissionsQuiz> {
   final List<SwipeItem> _swipeItems = [];
   int currentIndex = 0;
 
+  // Map index to explanation
+  final Map<int, String> explanations = {
+    0: 'PROVOKASI (Ini adalah generalisasi berlebihan yang bertujuan memanaskan konflik).',
+    1: 'FAKTA (Ini adalah informasi yang bisa diverifikasi).',
+  };
+
   @override
   void initState() {
     super.initState();
 
-    if (widget.questions.isNotEmpty) {
-      for (var question in widget.questions) {
-        _swipeItems.add(
-          SwipeItem(
-            content: question,
-            likeAction: () => handleSwipe(true),
-            nopeAction: () => handleSwipe(false),
-          ),
-        );
-      }
-      _matchEngine = MatchEngine(swipeItems: _swipeItems);
+    // Prepare swipe items
+    for (var question in widget.questions) {
+      _swipeItems.add(
+        SwipeItem(
+          content: question,
+          likeAction: () => handleSwipe(true),
+          nopeAction: () => handleSwipe(false),
+        ),
+      );
     }
+
+    _matchEngine = MatchEngine(swipeItems: _swipeItems);
   }
 
   void handleSwipe(bool userSwipedRight) {
-    final correct =
-        widget.correctIndex[currentIndex] == (userSwipedRight ? 1 : 0);
+    int correctAnswer = widget.correctIndex[currentIndex];
+    bool userIsCorrect =
+        (userSwipedRight && correctAnswer == 1) ||
+        (!userSwipedRight && correctAnswer == 0);
 
-    // Show a popup/dialog
     showDialog(
       context: context,
-      barrierDismissible: false,
+      barrierDismissible: false, // dims background until closed
       builder: (_) => AlertDialog(
-        backgroundColor: correct ? Colors.green : Colors.red,
-        title: Text(correct ? "✅ Jawaban Benar!" : "❌ Jawaban Salah"),
-        content: Text(
-          correct
-              ? "Bagus! Jawaban Anda benar."
-              : "Oops! Jawaban yang benar adalah: ${widget.answers[currentIndex][widget.correctIndex[currentIndex]]}",
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              children: [
+                SvgPicture.asset(
+                  userIsCorrect ? 'assets/correct.svg' : 'assets/wrong.svg',
+                  height: 100,
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  userIsCorrect ? 'Jawaban Anda Benar' : 'Jawaban Anda Salah',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: userIsCorrect
+                        ? const Color(0xff72C457)
+                        : const Color(0xffDB5550),
+                  ),
+                ),
+                const SizedBox(height: 15),
+                Text(explanations[correctAnswer]!, textAlign: TextAlign.center),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context); // close dialog
+                    setState(() => currentIndex++); // move to next question
+                  },
+                  child: const Text('Lanjut'),
+                ),
+              ],
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              setState(() => currentIndex++);
-
-              if (currentIndex >= widget.questions.length) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Quiz Completed!")),
-                );
-                Navigator.pop(context);
-              }
-            },
-            child: const Text("Lanjut"),
-          ),
-        ],
       ),
     );
   }
@@ -95,6 +114,7 @@ class _DailyMissionsQuizState extends State<DailyMissionsQuiz> {
             )
           : Column(
               children: [
+                // Progress bar
                 Padding(
                   padding: const EdgeInsets.all(16),
                   child: Row(
@@ -109,7 +129,7 @@ class _DailyMissionsQuizState extends State<DailyMissionsQuiz> {
                       ),
                       const SizedBox(width: 10),
                       Text(
-                        "$currentIndex/$total",
+                        "${currentIndex + 1}/$total",
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -118,7 +138,10 @@ class _DailyMissionsQuizState extends State<DailyMissionsQuiz> {
                     ],
                   ),
                 ),
+
                 const SizedBox(height: 20),
+
+                // Swipe cards
                 Expanded(
                   child: SwipeCards(
                     matchEngine: _matchEngine,
@@ -154,6 +177,8 @@ class _DailyMissionsQuizState extends State<DailyMissionsQuiz> {
                     },
                   ),
                 ),
+
+                // Swipe hints
                 Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
