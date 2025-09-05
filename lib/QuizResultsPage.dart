@@ -121,11 +121,56 @@ class _QuizResultsPageState extends State<QuizResultsPage> {
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
               const Divider(),
-              const SizedBox(height: 20),
 
-              // Question progress
+              SizedBox(
+                height: 40,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: quizQuestions.length,
+                  itemBuilder: (context, index) {
+                    final isCurrent = index == _currentIndex;
+                    final questionResult = widget.userAnswers[index];
+                    final isQuestionCorrect = questionResult['is_correct'];
+
+                    Color circleColor;
+                    if (isCurrent) {
+                      circleColor = Colors.blue;
+                    } else if (isQuestionCorrect) {
+                      circleColor = Colors.green;
+                    } else {
+                      circleColor = Colors.red;
+                    }
+
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _currentIndex = index;
+                        });
+                      },
+                      child: Container(
+                        alignment: Alignment.center,
+                        margin: const EdgeInsets.symmetric(horizontal: 4),
+                        padding: const EdgeInsets.all(8),
+                        width: 40,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: circleColor,
+                        ),
+                        child: Text(
+                          (index + 1).toString(),
+                          style: TextStyle(
+                            color: isCurrent ? Colors.white : Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const Divider(),
+
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [

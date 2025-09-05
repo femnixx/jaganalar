@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:dash_chat_2/dash_chat_2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gemini/flutter_gemini.dart';
 import 'package:jaganalar/Dashboard.dart';
@@ -9,8 +8,6 @@ import 'package:jaganalar/main_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'consts.dart';
 import 'UserModel.dart';
-import 'DiscussionPage.dart';
-import 'consts.dart';
 
 final Gemini gemini = Gemini.init(apiKey: GEMINI_API_KEY);
 
@@ -49,31 +46,7 @@ class QuizSet {
   }
 }
 
-Future<List<QuizSet>> fetchQuizSets() async {
-  final userId = SupabaseService.client.auth.currentUser!.id;
-
-  final completed = await SupabaseService.client
-      .from('quiz_completed')
-      .select('quiz_id')
-      .eq('uuid', userId);
-
-  final completedIds = completed is List
-      ? completed.map((e) => e['quiz_id'] as int).toList()
-      : [];
-
-  final response = await SupabaseService.client.from('questions').select('*');
-
-  if (response is List) {
-    return response
-        .map((e) => QuizSet.fromMap(e as Map<String, dynamic>))
-        .where((quiz) => !completedIds.contains(quiz.id))
-        .toList();
-  }
-
-  return [];
-}
-
-/// Fetch user info for XP updates
+/// Fetch user info
 Future<UserModel?> fetchUser() async {
   final userId = SupabaseService.client.auth.currentUser!.id;
   final response = await SupabaseService.client
@@ -99,8 +72,11 @@ class _QuizPageState extends State<QuizPage> {
   int currentIndex = 0;
   int? selectedAnswer;
   String? feedbackMessage;
-  List<Map<String, dynamic>> _userAnswers = [];
 
+  List<Map<String, dynamic>> _userAnswers = [];
+  List<String> _feedbackList = []; // <-- JSON array of feedback per question
+
+  /// Update XP and mission count
   Future<void> updateMissionCountAndLevelUp() async {
     final user = await fetchUser();
     if (user == null) return;
@@ -121,9 +97,9 @@ class _QuizPageState extends State<QuizPage> {
         .eq('uuid', SupabaseService.client.auth.currentUser!.id);
   }
 
+  /// Add quiz to history
   Future<void> addHistory(int quizId) async {
     final userId = SupabaseService.client.auth.currentUser!.id;
-
     try {
       await SupabaseService.client.from('quiz_completed').upsert({
         'uuid': userId,
@@ -136,7 +112,7 @@ class _QuizPageState extends State<QuizPage> {
     }
   }
 
-  // New function to save quiz results
+  /// Save quiz results with feedback JSON
   Future<void> saveQuizResults() async {
     final userId = SupabaseService.client.auth.currentUser!.id;
     final score = _userAnswers.where((a) => a['is_correct'] == true).length;
@@ -148,6 +124,7 @@ class _QuizPageState extends State<QuizPage> {
         'selected_answers': _userAnswers,
         'score': score,
         'created_at': DateTime.now().toIso8601String(),
+        'feedback': jsonEncode(_feedbackList), // <-- save JSON array
       });
       print('Quiz results saved successfully!');
     } catch (e) {
@@ -155,45 +132,7 @@ class _QuizPageState extends State<QuizPage> {
     }
   }
 
-  Future<void> nextQuestion() async {
-    if (currentIndex < widget.quizSet.questions.length - 1) {
-      setState(() {
-        currentIndex++;
-        selectedAnswer = null;
-        feedbackMessage = null;
-      });
-    } else {
-      await updateMissionCountAndLevelUp();
-      await addHistory(widget.quizSet.id);
-      await saveQuizResults();
-      print(
-        "Quiz ${widget.quizSet.id} added to history of user ${SupabaseService.client.auth.currentUser!.id}",
-      );
-      setState(() {});
-      if (!mounted) return;
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => AlertDialog(
-          title: const Text('Quiz Completed!'),
-          content: const Text('You gained XP and completed a mission!'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (_) => MyMainScreen()),
-                );
-              },
-              child: const Text('OK'),
-            ),
-          ],
-        ),
-      );
-    }
-  }
-
+  /// Get feedback for a single question
   Future<void> getAndSetFeedback({
     required String question,
     required List<String> options,
@@ -230,226 +169,131 @@ If correct: explain briefly why others are wrong.
 """;
 
       final response = await Gemini.instance.prompt(parts: [Part.text(prompt)]);
+      String feedback = response?.output ?? "No feedback available.";
+
       setState(() {
-        feedbackMessage = response?.output ?? "No feedback available.";
+        feedbackMessage = feedback;
       });
+
+      // Add feedback to JSON array
+      if (_feedbackList.length > currentIndex) {
+        _feedbackList[currentIndex] = feedback;
+      } else {
+        _feedbackList.add(feedback);
+      }
+
+      // Update feedback in user answers as well
+      _userAnswers[currentIndex]['feedback'] = feedback;
     } catch (e) {
       print("Gemini Error: $e");
       setState(() {
         feedbackMessage = "Error getting feedback.";
       });
+
+      if (_feedbackList.length > currentIndex) {
+        _feedbackList[currentIndex] = "Error getting feedback.";
+      } else {
+        _feedbackList.add("Error getting feedback.");
+      }
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final question = widget.quizSet.questions[currentIndex];
-    final options = List<String>.from(widget.quizSet.answers[currentIndex]);
-    final correctIndex = widget.quizSet.correctIndex[currentIndex] as int;
-    final progress = (currentIndex + 1) / widget.quizSet.questions.length;
-    final progressPercentage = (progress * 100).toStringAsFixed(0);
-
-    return Scaffold(
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(top: 32),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    IconButton(
-                      onPressed: () {
-                        // implement confirm to go out or whatever but will not get points
-                      },
-                      icon: Icon(Icons.arrow_back_ios),
-                    ),
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Text(
-                        question,
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: () {
-                        // idk what to implement here
-                      },
-                      icon: Icon(Icons.more_vert),
-                    ),
-                  ],
-                ),
-              ),
-              Divider(),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Pertanyaan ${currentIndex + 1} dari ${widget.quizSet.questions.length}',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    '$progressPercentage%',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 10),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: LinearProgressIndicator(
-                  value: progress,
-                  color: Colors.black,
-                  valueColor: AlwaysStoppedAnimation(Colors.pink),
-                  minHeight: 12,
-                ),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                question,
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-              ),
-              // Generate answer buttons
-              ...List.generate(options.length, (index) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: ElevatedButton(
-                    onPressed: () async {
-                      if (selectedAnswer != null)
-                        return; // prevent multiple clicks
-
-                      setState(() {
-                        selectedAnswer = index;
-                        _userAnswers.add({
-                          'question_index': currentIndex,
-                          'selected_option': index,
-                          'is_correct': index == correctIndex,
-                        });
-                      });
-
-                      await getAndSetFeedback(
-                        question: question,
-                        options: options,
-                        correctIndex: correctIndex,
-                        userAnswerIndex: index,
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      side: BorderSide(color: Color(0xff9396A0)),
-                      shadowColor: Colors.transparent,
-                      backgroundColor: getOptionColor(
-                        index,
-                        selectedAnswer,
-                        correctIndex,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: Text(
-                      options[index],
-                      style: TextStyle(
-                        color:
-                            (selectedAnswer != null &&
-                                (index == selectedAnswer ||
-                                    index == correctIndex))
-                            ? Colors.white
-                            : Colors.black,
-                      ),
-                    ),
-                  ),
+  /// Move to next question or finish quiz
+  Future<void> nextQuestion() async {
+    if (currentIndex < widget.quizSet.questions.length - 1) {
+      setState(() {
+        currentIndex++;
+        selectedAnswer = null;
+        feedbackMessage = null;
+      });
+    } else {
+      await updateMissionCountAndLevelUp();
+      await addHistory(widget.quizSet.id);
+      await saveQuizResults();
+      if (!mounted) return;
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => AlertDialog(
+          title: const Text('Quiz Completed!'),
+          content: const Text('You gained XP and completed a mission!'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (_) => MyMainScreen()),
                 );
-              }),
-              if (selectedAnswer != null) ...[
-                const SizedBox(height: 20),
-                selectedAnswer == correctIndex ? _ifCorrect() : _ifWrong(),
-                const SizedBox(height: 20),
-                _feedbackContainer(),
-              ],
-            ],
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
+  /// UI for correct/wrong feedback
+  Widget _ifCorrect() => Container(
+    decoration: BoxDecoration(
+      color: const Color(0xffCCFECB).withOpacity(0.5),
+      borderRadius: BorderRadius.circular(8),
+    ),
+    child: Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        children: const [
+          Text(
+            'Jawaban Anda Benar',
+            style: TextStyle(
+              color: Color(0xff72C457),
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
           ),
-        ),
+          Text(
+            'Silahkan lanjut ke soal berikutnya',
+            style: TextStyle(
+              color: Color(0xff969696),
+              fontSize: 14,
+              fontWeight: FontWeight.normal,
+            ),
+          ),
+        ],
       ),
-    );
-  }
+    ),
+  );
 
-  Widget _ifCorrect() {
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xffCCFECB).withOpacity(0.5),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text(
-              'Jawaban Anda Benar',
-              style: TextStyle(
-                color: Color(0xff72C457),
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
+  Widget _ifWrong() => Container(
+    decoration: BoxDecoration(
+      color: Colors.red.withOpacity(0.5),
+      borderRadius: BorderRadius.circular(8),
+    ),
+    child: Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        children: const [
+          Text(
+            'Jawaban Anda Salah',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
             ),
-            Text(
-              'Silahkan lanjut ke soal berikutnya',
-              style: TextStyle(
-                color: Color(0xff969696),
-                fontSize: 14,
-                fontWeight: FontWeight.normal,
-              ),
+          ),
+          Text(
+            'Silahkan lanjut ke soal berikutnya!',
+            style: TextStyle(
+              color: Colors.white70,
+              fontSize: 14,
+              fontWeight: FontWeight.normal,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
-    );
-  }
-
-  Widget _ifWrong() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.red.withOpacity(0.5),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text(
-              'Jawaban Anda Salah',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            Text(
-              'Silahkan lanjut ke soal berikutnya!',
-              style: TextStyle(
-                color: Colors.white70,
-                fontSize: 14,
-                fontWeight: FontWeight.normal,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+    ),
+  );
 
   Widget _feedbackContainer() {
     final isLastQuestion = currentIndex == widget.quizSet.questions.length - 1;
@@ -465,11 +309,11 @@ If correct: explain briefly why others are wrong.
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(
+              const Text(
                 'Pembahasan Soal:',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               Text(
                 feedbackMessage ?? 'Loading feedback...',
                 style: const TextStyle(fontSize: 16),
@@ -478,7 +322,7 @@ If correct: explain briefly why others are wrong.
             ],
           ),
         ),
-        SizedBox(height: 20),
+        const SizedBox(height: 20),
         ElevatedButton(
           style: ElevatedButton.styleFrom(
             shadowColor: Colors.transparent,
@@ -487,32 +331,177 @@ If correct: explain briefly why others are wrong.
               borderRadius: BorderRadius.circular(8),
             ),
           ),
-          onPressed: () async {
-            await nextQuestion();
-          },
+          onPressed: nextQuestion,
           child: Align(
             alignment: isLastQuestion
                 ? Alignment.center
                 : Alignment.centerRight,
             child: Text(
               isLastQuestion ? 'Ruang Diskusi' : 'Lanjut >>',
-              style: TextStyle(color: Colors.white),
+              style: const TextStyle(color: Colors.white),
             ),
           ),
         ),
       ],
     );
   }
+
+  @override
+  Widget build(BuildContext context) {
+    final question = widget.quizSet.questions[currentIndex];
+    final options = List<String>.from(widget.quizSet.answers[currentIndex]);
+    final correctIndex = widget.quizSet.correctIndex[currentIndex] as int;
+    final progress = (currentIndex + 1) / widget.quizSet.questions.length;
+    final progressPercentage = (progress * 100).toStringAsFixed(0);
+
+    return Scaffold(
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 32),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  IconButton(
+                    onPressed: () {},
+                    icon: const Icon(Icons.arrow_back_ios),
+                  ),
+                  Expanded(
+                    child: Text(
+                      question,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () {},
+                    icon: const Icon(Icons.more_vert),
+                  ),
+                ],
+              ),
+            ),
+            const Divider(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Pertanyaan ${currentIndex + 1} dari ${widget.quizSet.questions.length}',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  '$progressPercentage%',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: LinearProgressIndicator(
+                value: progress,
+                color: Colors.black,
+                valueColor: const AlwaysStoppedAnimation(Colors.pink),
+                minHeight: 12,
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              question,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 10),
+            ...List.generate(options.length, (index) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: ElevatedButton(
+                  onPressed: selectedAnswer != null
+                      ? null
+                      : () async {
+                          setState(() {
+                            selectedAnswer = index;
+                            _userAnswers.add({
+                              'question_index': currentIndex,
+                              'selected_option': index,
+                              'is_correct': index == correctIndex,
+                              'feedback': '',
+                            });
+                          });
+
+                          await getAndSetFeedback(
+                            question: question,
+                            options: options,
+                            correctIndex: correctIndex,
+                            userAnswerIndex: index,
+                          );
+                        },
+                  style: ButtonStyle(
+                    backgroundColor: MaterialStateProperty.resolveWith<Color>((
+                      states,
+                    ) {
+                      if (selectedAnswer == null) return Colors.white;
+                      if (index == correctIndex)
+                        return const Color(0xff00FF03); // green
+                      if (index == selectedAnswer &&
+                          selectedAnswer != correctIndex)
+                        return const Color(0xffDB5550); // red
+                      return Colors.white;
+                    }),
+                    foregroundColor: MaterialStateProperty.resolveWith<Color>((
+                      states,
+                    ) {
+                      if (selectedAnswer == null) return Colors.black;
+                      if (index == correctIndex ||
+                          (index == selectedAnswer &&
+                              selectedAnswer != correctIndex))
+                        return Colors.white;
+                      return Colors.black;
+                    }),
+                    side: MaterialStateProperty.all(
+                      const BorderSide(color: Color(0xff9396A0)),
+                    ),
+                    shape: MaterialStateProperty.all(
+                      RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    shadowColor: MaterialStateProperty.all(Colors.transparent),
+                  ),
+                  child: Text(options[index]),
+                ),
+              );
+            }),
+            if (selectedAnswer != null) ...[
+              const SizedBox(height: 20),
+              selectedAnswer ==
+                      (widget.quizSet.correctIndex[currentIndex] as int)
+                  ? _ifCorrect()
+                  : _ifWrong(),
+              const SizedBox(height: 20),
+              _feedbackContainer(),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
 }
 
+/// Option color helper
 Color getOptionColor(int index, int? selectedAnswer, int correctIndex) {
-  if (selectedAnswer == null) {
-    return Colors.white;
-  } else if (index == correctIndex) {
-    return Color(0xff00FF03);
-  } else if (index == selectedAnswer && selectedAnswer != correctIndex) {
-    return Color(0xffDB5550);
-  } else {
-    return Colors.white;
-  }
+  if (selectedAnswer == null) return Colors.white;
+  if (index == correctIndex) return const Color(0xff00FF03);
+  if (index == selectedAnswer && selectedAnswer != correctIndex)
+    return const Color(0xffDB5550);
+  return Colors.white;
 }

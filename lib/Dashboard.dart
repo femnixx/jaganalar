@@ -4,7 +4,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:jaganalar/Activity.dart';
 import 'package:jaganalar/History.dart';
 import 'package:jaganalar/Profile.dart';
-import 'package:jaganalar/QuizQuestion.dart';
 import 'package:jaganalar/SignIn.dart';
 import 'package:jaganalar/UserModel.dart';
 import 'package:jaganalar/main.dart';
@@ -12,6 +11,7 @@ import 'Supabase.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as p;
 import 'dart:io';
+import 'QuizQuestion.dart';
 
 class Dashboard extends StatefulWidget {
   const Dashboard({Key? key}) : super(key: key);
@@ -21,6 +21,16 @@ class Dashboard extends StatefulWidget {
 }
 
 class _DashboardState extends State<Dashboard> {
+  Future<List<QuizSet>> fetchQuizSets() async {
+    final response = await SupabaseService.client.from('questions').select('*');
+    if (response is List) {
+      return response
+          .map((e) => QuizSet.fromMap(e as Map<String, dynamic>))
+          .toList();
+    }
+    return [];
+  }
+
   Future<void> uploadProfilePicture(String userId) async {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
@@ -456,6 +466,18 @@ class _DashboardState extends State<Dashboard> {
   }
 
   Widget _buildWeeklyMission(BuildContext context) {
+    Future<List<QuizSet>> fetchQuizSets() async {
+      final response = await SupabaseService.client
+          .from('questions')
+          .select('*');
+      if (response is List) {
+        return response
+            .map((e) => QuizSet.fromMap(e as Map<String, dynamic>))
+            .toList();
+      }
+      return [];
+    }
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Container(
@@ -542,8 +564,8 @@ class _DashboardState extends State<Dashboard> {
                             ),
                           ),
                           onPressed: () async {
-                            final questions = await fetchQuizSets();
-                            if (questions.isEmpty) {
+                            final quizSets = await fetchQuizSets();
+                            if (quizSets.isEmpty) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                   content: Text("No quiz questions available."),
