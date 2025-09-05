@@ -20,6 +20,7 @@ class QuizResultsPage extends StatefulWidget {
 class _QuizResultsPageState extends State<QuizResultsPage> {
   Map<String, dynamic>? _quizData;
   bool _isLoading = true;
+  int _currentIndex = 0; // State variable to track the current question index
 
   @override
   void initState() {
@@ -47,6 +48,22 @@ class _QuizResultsPageState extends State<QuizResultsPage> {
     }
   }
 
+  void _nextQuestion() {
+    if (_currentIndex < _quizData!['questions'].length - 1) {
+      setState(() {
+        _currentIndex++;
+      });
+    }
+  }
+
+  void _previousQuestion() {
+    if (_currentIndex > 0) {
+      setState(() {
+        _currentIndex--;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -66,81 +83,181 @@ class _QuizResultsPageState extends State<QuizResultsPage> {
     final quizQuestions = _quizData!['questions'];
     final quizAnswers = _quizData!['answers'];
     final quizCorrectIndices = _quizData!['correctIndex'];
+    final quizTitle = _quizData!['title'] ?? 'Quiz Results';
+
+    final questionText = quizQuestions[_currentIndex];
+    final options = List<String>.from(quizAnswers[_currentIndex]);
+    final correctIndex = quizCorrectIndices[_currentIndex] as int;
+    final userAnswerData = widget.userAnswers[_currentIndex];
+    final selectedOptionIndex = userAnswerData['selected_option'];
+    final isCorrect = userAnswerData['is_correct'];
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(_quizData!['title'] ?? 'Quiz Results'),
-        centerTitle: true,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: ListView.builder(
-          itemCount: quizQuestions.length,
-          itemBuilder: (context, index) {
-            final questionText = quizQuestions[index];
-            final options = List<String>.from(quizAnswers[index]);
-            final correctIndex = quizCorrectIndices[index] as int;
-            final userAnswer = widget.userAnswers[index];
-            final selectedOptionIndex = userAnswer['selected_option'];
-            final isCorrect = userAnswer['is_correct'];
-
-            return Card(
-              margin: const EdgeInsets.symmetric(vertical: 10),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Question ${index + 1}:',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back_ios),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                  Text(
+                    quizTitle,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
                     ),
-                    const SizedBox(height: 8),
-                    Text(questionText, style: const TextStyle(fontSize: 16)),
-                    const SizedBox(height: 16),
-                    ...List.generate(options.length, (optionIndex) {
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4.0),
-                        child: Text(
-                          '${getAlphabet(optionIndex)}. ${options[optionIndex]}',
-                          style: TextStyle(
-                            color: getOptionColor(
-                              optionIndex,
-                              selectedOptionIndex,
-                              correctIndex,
+                  ),
+                  IconButton(
+                    onPressed: () {
+                      // Action for more options
+                    },
+                    icon: const Icon(Icons.more_vert),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              const Divider(),
+              const SizedBox(height: 20),
+
+              // Question progress
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Question ${_currentIndex + 1} of ${quizQuestions.length}',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  Text(
+                    '${((_currentIndex + 1) / quizQuestions.length * 100).toStringAsFixed(0)}%',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              LinearProgressIndicator(
+                value: (_currentIndex + 1) / quizQuestions.length,
+                minHeight: 12,
+                color: Colors.pink,
+                backgroundColor: Colors.grey[300],
+              ),
+              const SizedBox(height: 20),
+
+              // Question content
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        questionText,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      ...List.generate(options.length, (optionIndex) {
+                        final isUserChoice = optionIndex == selectedOptionIndex;
+                        final isCorrectAnswer = optionIndex == correctIndex;
+
+                        Color backgroundColor;
+                        Color textColor;
+                        Color borderColor;
+                        FontWeight fontWeight = FontWeight.w500;
+
+                        if (isCorrectAnswer) {
+                          backgroundColor = const Color(0xffCCFECB);
+                          textColor = const Color(0xff72C457);
+                          borderColor = const Color(0xff72C457);
+                          fontWeight = FontWeight.bold;
+                        } else if (isUserChoice) {
+                          backgroundColor = Colors.red.withOpacity(0.2);
+                          textColor = Colors.red;
+                          borderColor = Colors.red;
+                        } else {
+                          backgroundColor = Colors.white;
+                          textColor = Colors.black;
+                          borderColor = Colors.grey;
+                        }
+
+                        return Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                          margin: const EdgeInsets.symmetric(vertical: 4),
+                          decoration: BoxDecoration(
+                            color: backgroundColor,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: borderColor),
+                          ),
+                          child: Text(
+                            '${getAlphabet(optionIndex)}. ${options[optionIndex]}',
+                            style: TextStyle(
+                              color: textColor,
+                              fontWeight: fontWeight,
                             ),
+                          ),
+                        );
+                      }),
+                      const SizedBox(height: 20),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: isCorrect
+                              ? const Color(0xffCCFECB)
+                              : Colors.red.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          isCorrect
+                              ? 'Correct Answer!'
+                              : 'Your Answer is Incorrect!',
+                          style: TextStyle(
+                            color: isCorrect
+                                ? const Color(0xff72C457)
+                                : Colors.red,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                      );
-                    }),
-                    const SizedBox(height: 16),
-                    Text(
-                      isCorrect ? 'Correct!' : 'Incorrect.',
-                      style: TextStyle(
-                        color: isCorrect ? Colors.green : Colors.red,
-                        fontWeight: FontWeight.bold,
                       ),
-                    ),
-                    Text(
-                      'You chose: ${options[selectedOptionIndex]}',
-                      style: const TextStyle(fontStyle: FontStyle.italic),
-                    ),
-                    Text(
-                      'Correct answer: ${options[correctIndex]}',
-                      style: const TextStyle(
-                        fontStyle: FontStyle.italic,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            );
-          },
+
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  ElevatedButton(
+                    onPressed: _currentIndex > 0 ? _previousQuestion : null,
+                    child: const Text('Previous'),
+                  ),
+                  ElevatedButton(
+                    onPressed: _currentIndex < quizQuestions.length - 1
+                        ? _nextQuestion
+                        : null,
+                    child: const Text('Next'),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -148,15 +265,5 @@ class _QuizResultsPageState extends State<QuizResultsPage> {
 
   String getAlphabet(int index) {
     return String.fromCharCode('A'.codeUnitAt(0) + index);
-  }
-
-  Color getOptionColor(int index, int selectedOptionIndex, int correctIndex) {
-    if (index == correctIndex) {
-      return Colors.green;
-    }
-    if (index == selectedOptionIndex && selectedOptionIndex != correctIndex) {
-      return Colors.red;
-    }
-    return Colors.black;
   }
 }

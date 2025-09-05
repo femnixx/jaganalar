@@ -27,7 +27,7 @@ class HistoryPage extends StatelessWidget {
             'title': title,
             'selected_answers': row['selected_answers'],
             'score': row['score'],
-            'completedAt': row['completed_at'],
+            'completedAt': row['created_at'],
           };
         }).toList();
 
@@ -147,10 +147,18 @@ class HistoryPage extends StatelessWidget {
       itemCount: quizzes.length,
       itemBuilder: (context, index) {
         final quiz = quizzes[index];
-        final userAnswers = List<dynamic>.from(quiz['selected_answers']);
+        final rawAnswers = quiz['selected_answers'] as List<dynamic>?;
+        final userAnswers =
+            rawAnswers
+                ?.map((e) => Map<String, dynamic>.from(e as Map))
+                .toList() ??
+            [];
+
         final totalQuestions = userAnswers.length;
         final score = quiz['score'];
-        final scorePercentage = (score / totalQuestions) * 100;
+        final scorePercentage = (totalQuestions > 0)
+            ? (score / totalQuestions) * 100
+            : 0;
 
         return Card(
           margin: const EdgeInsets.symmetric(vertical: 8),
@@ -163,7 +171,7 @@ class HistoryPage extends StatelessWidget {
                 children: [
                   Expanded(
                     child: LinearProgressIndicator(
-                      value: score / totalQuestions,
+                      value: (totalQuestions > 0) ? score / totalQuestions : 0,
                       minHeight: 6,
                     ),
                   ),
@@ -173,6 +181,7 @@ class HistoryPage extends StatelessWidget {
               ),
             ),
             onTap: () {
+              // No changes here, the issue is not in this line.
               Navigator.push(
                 context,
                 MaterialPageRoute(
