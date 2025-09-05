@@ -183,7 +183,7 @@ class _QuizPageState extends State<QuizPage> {
                 Navigator.pop(context);
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (_) => HistoryPage()),
+                  MaterialPageRoute(builder: (_) => MyMainScreen()),
                 );
               },
               child: const Text('OK'),

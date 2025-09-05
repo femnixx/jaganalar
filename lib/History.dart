@@ -1,38 +1,43 @@
 import 'package:flutter/material.dart';
 import 'package:jaganalar/ChatQuiz.dart';
+import 'package:jaganalar/QuizResultsPage.dart';
 import 'Supabase.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class HistoryPage extends StatelessWidget {
   const HistoryPage({super.key});
 
-  // Fetch completed quizzes for the current user
+  // Fetch completed quizzes for the current user from the quiz_results table.
   Future<List<Map<String, dynamic>>> fetchCompletedQuizzes() async {
     final currentUserId = SupabaseService.client.auth.currentUser?.id;
     if (currentUserId == null) return [];
 
-    final response = await SupabaseService.client
-        .from('quiz_completed')
-        .select(
-          'quiz_id, completed, created_at',
-        ) // Assuming timestamp field is 'created_at'
-        .eq('uuid', currentUserId);
+    try {
+      final response = await SupabaseService.client
+          .from('quiz_results')
+          .select('quiz_id, selected_answers, score, created_at')
+          .eq('uuid', currentUserId)
+          .order('created_at', ascending: false);
 
-    if (response is List) {
-      final futures = response.map<Future<Map<String, dynamic>>>((row) async {
-        final title = await getQuizTitleById(row['quiz_id'] as int);
-        return {
-          'quiz_id': row['quiz_id'],
-          'title': title,
-          'completed': row['completed'] ?? false,
-          'completedAt': row['created_at'],
-        };
-      }).toList();
+      if (response is List) {
+        final futures = response.map<Future<Map<String, dynamic>>>((row) async {
+          final title = await getQuizTitleById(row['quiz_id'] as int);
+          return {
+            'quiz_id': row['quiz_id'],
+            'title': title,
+            'selected_answers': row['selected_answers'],
+            'score': row['score'],
+            'completedAt': row['completed_at'],
+          };
+        }).toList();
 
-      return await Future.wait(futures);
+        return await Future.wait(futures);
+      }
+      return [];
+    } catch (e) {
+      print('Error fetching completed quizzes: $e');
+      return [];
     }
-
-    return [];
   }
 
   // Fetch quiz title from the 'questions' table
@@ -92,7 +97,7 @@ class HistoryPage extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           const Text(
-            'Quiz',
+            'Quiz History',
             style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
           IconButton(
@@ -142,13 +147,15 @@ class HistoryPage extends StatelessWidget {
       itemCount: quizzes.length,
       itemBuilder: (context, index) {
         final quiz = quizzes[index];
+        final userAnswers = List<dynamic>.from(quiz['selected_answers']);
+        final totalQuestions = userAnswers.length;
+        final score = quiz['score'];
+        final scorePercentage = (score / totalQuestions) * 100;
+
         return Card(
           margin: const EdgeInsets.symmetric(vertical: 8),
           child: ListTile(
-            leading: Icon(
-              quiz['completed'] ? Icons.check_circle : Icons.circle_outlined,
-              color: quiz['completed'] ? Colors.green : Colors.grey,
-            ),
+            leading: const Icon(Icons.check_circle, color: Colors.green),
             title: Text(quiz['title']),
             subtitle: Padding(
               padding: const EdgeInsets.only(top: 8),
@@ -156,12 +163,12 @@ class HistoryPage extends StatelessWidget {
                 children: [
                   Expanded(
                     child: LinearProgressIndicator(
-                      value: 1, // 100%
+                      value: score / totalQuestions,
                       minHeight: 6,
                     ),
                   ),
                   const SizedBox(width: 10),
-                  const Text('100%'),
+                  Text('${scorePercentage.toStringAsFixed(0)}%'),
                 ],
               ),
             ),
@@ -169,8 +176,10 @@ class HistoryPage extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) =>
-                      QuizDiscussionPage(quizId: quiz['quiz_id']),
+                  builder: (context) => QuizResultsPage(
+                    quizId: quiz['quiz_id'] as int,
+                    userAnswers: userAnswers,
+                  ),
                 ),
               );
             },
